@@ -529,7 +529,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			 * 根据context拿到对应的namespaceUri-->再根据namespaceUri拿到对应的Handler（SPI机制）--->再根据Handler初始化（init）所有的Parse解析器,再根据component-scan找到具体的解析器
 			* 	自定义标签解析流程：
 			* 		a、根据当前解析标签的头信息找到对应的namespaceUri
-			* 		b、加载spring所以jar中的spring.handlers文件(SPI机制 spring provider interfice  读取配置文件（key=value）)。并建立映射关系
+			* 		b、加载spring所有jar中的spring.handlers文件(SPI机制 spring provider interfice  读取配置文件（key=value）)。并建立映射关系
 			* 		c、根据namespaceUri从映射关系中找到对应的实现了NamespaceHandler接口的类
 			* 		d、调用类的init方法，init方法是注册了各种自定义标签的解析类
 			* 		e、根据namespaceUri找到对应的解析类，然后调用paser方法完成标签解析
@@ -546,6 +546,9 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				postProcessBeanFactory(beanFactory);
 
 				// Invoke factory processors registered as beans in the context.
+				/**
+				 * 1.定义在bean实列化之前，完成对BeanDefinition的修改和注册，删除
+				 */
 				invokeBeanFactoryPostProcessors(beanFactory);
 
 				// Register bean processors that intercept bean creation.
