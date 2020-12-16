@@ -332,6 +332,7 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 		}
          //将resource转成输入流
 		try (InputStream inputStream = encodedResource.getResource().getInputStream()) {
+			//InputSource是jdk中的sax xml文件解析对象
 			InputSource inputSource = new InputSource(inputStream);
 			if (encodedResource.getEncoding() != null) {
 				inputSource.setEncoding(encodedResource.getEncoding());
@@ -389,7 +390,7 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 			throws BeanDefinitionStoreException {
 
 		try {
-			//转成Document对象
+			//把inputSource 封装成Document文件对象，这是jdk的API
 			Document doc = doLoadDocument(inputSource, resource);
 			//将解析xml中的Bean装载成BeanDefinition放入BeanDefinitionMap中
 			int count = registerBeanDefinitions(doc, resource);
@@ -512,6 +513,7 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 	public int registerBeanDefinitions(Document doc, Resource resource) throws BeanDefinitionStoreException {
 		BeanDefinitionDocumentReader documentReader = createBeanDefinitionDocumentReader();
 		int countBefore = getRegistry().getBeanDefinitionCount();
+		//createReaderContext(resource)创建出xmlContentReader和DefaultNamespaceHandlerResolver用于自定义标签解析
 		documentReader.registerBeanDefinitions(doc, createReaderContext(resource));
 		return getRegistry().getBeanDefinitionCount() - countBefore;
 	}

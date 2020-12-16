@@ -412,15 +412,17 @@ public class BeanDefinitionParserDelegate {
 	 */
 	@Nullable
 	public BeanDefinitionHolder parseBeanDefinitionElement(Element ele, @Nullable BeanDefinition containingBean) {
+		//获取<bean/>标签中的Id属性
 		String id = ele.getAttribute(ID_ATTRIBUTE);
+		//获取标签中的name属性
 		String nameAttr = ele.getAttribute(NAME_ATTRIBUTE);
-
+        //设置别名
 		List<String> aliases = new ArrayList<>();
 		if (StringUtils.hasLength(nameAttr)) {
 			String[] nameArr = StringUtils.tokenizeToStringArray(nameAttr, MULTI_VALUE_ATTRIBUTE_DELIMITERS);
 			aliases.addAll(Arrays.asList(nameArr));
 		}
-
+        //bean的名字就是属性id
 		String beanName = id;
 		if (!StringUtils.hasText(beanName) && !aliases.isEmpty()) {
 			beanName = aliases.remove(0);
@@ -431,9 +433,11 @@ public class BeanDefinitionParserDelegate {
 		}
 
 		if (containingBean == null) {
+			//检测beanName是否唯一
 			checkNameUniqueness(beanName, aliases, ele);
 		}
 
+		//创建出BeanDefinition,重要
 		AbstractBeanDefinition beanDefinition = parseBeanDefinitionElement(ele, beanName, containingBean);
 		if (beanDefinition != null) {
 			if (!StringUtils.hasText(beanName)) {
@@ -512,17 +516,26 @@ public class BeanDefinitionParserDelegate {
 		}
 
 		try {
+			//创建出BeanDefinition
 			AbstractBeanDefinition bd = createBeanDefinition(className, parent);
-
+           //设置bean的一系列属性入如singleton,depends-on
 			parseBeanDefinitionAttributes(ele, beanName, containingBean, bd);
+			//设置一系列额外的属性 不重要
 			bd.setDescription(DomUtils.getChildElementValueByTagName(ele, DESCRIPTION_ELEMENT));
 
+			///下main都是当前<bean/>的子标签
+            //解析meta标签
 			parseMetaElements(ele, bd);
+			//解析<lookup-method>
 			parseLookupOverrideSubElements(ele, bd.getMethodOverrides());
+			//解析<replaced-method>
 			parseReplacedMethodSubElements(ele, bd.getMethodOverrides());
 
+			//解析构造函数<constructor-arg/>
 			parseConstructorArgElements(ele, bd);
+			//解析<property/> ,每一个<property/>都被解析成PropertyValue对象，最后所有的PropertyValue都被放入MutablePropertyValues的List<PropertyValue>集合中
 			parsePropertyElements(ele, bd);
+			//解析<qualifier/>
 			parseQualifierElements(ele, bd);
 
 			bd.setResource(this.readerContext.getResource());
@@ -1383,11 +1396,16 @@ public class BeanDefinitionParserDelegate {
 		if (namespaceUri == null) {
 			return null;
 		}
+
+		//1.SPI机制找当前demo和当前jar路径为/META_INF/spring.handler文件
+		//2.再根据namespaceUri找到对应的NamespaceHandler,根据具体的Handler进行解析resolve()
+		//this.readerContext.getNamespaceHandlerResolver()实际上是DefaultNamespaceHandlerResolver,在之前就已经创建好的
 		NamespaceHandler handler = this.readerContext.getNamespaceHandlerResolver().resolve(namespaceUri);
 		if (handler == null) {
 			error("Unable to locate Spring NamespaceHandler for XML schema namespace [" + namespaceUri + "]", ele);
 			return null;
 		}
+		//拿到具体的Handler进行包的扫描解析,扫描包生成BeanDefinition
 		return handler.parse(ele, new ParserContext(this.readerContext, this, containingBd));
 	}
 

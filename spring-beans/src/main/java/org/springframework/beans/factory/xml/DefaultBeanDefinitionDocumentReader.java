@@ -146,6 +146,7 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 		}
 
 		preProcessXml(root);
+		//拿到根节点解析成BeanDefinitions
 		parseBeanDefinitions(root, this.delegate);
 		postProcessXml(root);
 
@@ -170,6 +171,7 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 			NodeList nl = root.getChildNodes();
 			for (int i = 0; i < nl.getLength(); i++) {
 				Node node = nl.item(i);
+				//若当前节点属于Element，也有可能事空节点（空格，换行都被xml解析成节点）
 				if (node instanceof Element) {
 					Element ele = (Element) node;
 					if (delegate.isDefaultNamespace(ele)) {
@@ -199,6 +201,7 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 		}
 		//<bean>
 		else if (delegate.nodeNameEquals(ele, BEAN_ELEMENT)) {
+			//主要看解析<bean/>标签
 			processBeanDefinition(ele, delegate);
 		}
 		//<beans>
@@ -309,13 +312,14 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 	 * and registering it with the registry.
 	 */
 	protected void processBeanDefinition(Element ele, BeanDefinitionParserDelegate delegate) {
-		//将<bean/>标签解析成BeanDefinitionHolder
+		//将<bean/>标签解析成BeanDefinition，这里就已经解析成BeanDefinition
 		BeanDefinitionHolder bdHolder = delegate.parseBeanDefinitionElement(ele);
 		if (bdHolder != null) {
+			//该方法功能不重要，设计模式重点看一下，装饰者设计模式，加上SPI设计思想
 			bdHolder = delegate.decorateBeanDefinitionIfRequired(ele, bdHolder);
 			try {
 				// Register the final decorated instance.
-				//真正注册BeanDefinition的地方
+				//真正注册BeanDefinition的地方,将BeanDefinition注册到容器中
 				BeanDefinitionReaderUtils.registerBeanDefinition(bdHolder, getReaderContext().getRegistry());
 			}
 			catch (BeanDefinitionStoreException ex) {
