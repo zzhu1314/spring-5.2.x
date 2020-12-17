@@ -547,7 +547,8 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 				// Invoke factory processors registered as beans in the context.
 				/**
-				 * 1.定义在bean实列化之前，完成对BeanDefinition的修改和注册，删除
+				 * 1.定义在bean实列化之前，BeanDefinitionRegistryPostProcessor完成对BeanDefinition的修改和注册，删除
+				 * 2.BeanFactoryPostProcessor对BeanFactory属性的修改
 				 */
 				invokeBeanFactoryPostProcessors(beanFactory);
 
