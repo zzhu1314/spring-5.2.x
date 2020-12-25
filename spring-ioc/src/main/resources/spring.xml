@@ -12,7 +12,20 @@
     http://www.springframework.org/schema/aop
 	http://www.springframework.org/schema/aop/spring-aop-3.2.xsd"
 	   default-lazy-init="false">
-
-	<bean class="com.xml.ioc.bean.Student"/>
-	<context:component-scan base-package="com.xml.ioc"/>
+	<!--    <bean id ="student1" class="com.xml.ioc.bean.Student"/>-->
+	<!--	<bean class="com.xml.ioc.bean.Student" parent="student1" depends-on="student1"/>-->
+	<context:component-scan base-package="com.xml.ioc" use-default-filters="true"/>
+	<!--	<bean id="student" class="com.xml.ioc.bean.Student"/>-->
+	<!--
+		非静态方法实列化
+	-->
+	<!--	<bean id="dog" factory-bean="student" factory-method="dog"/>-->
+	<!--
+		静态方法实列化
+	-->
+	<!--	<bean class="com.xml.ioc.bean.Dog" factory-method="student"/>-->
+	<!--	构造函数@Autowired实列化-->
+	<bean name="dog" class="com.xml.ioc.bean.Dog"/>
+	<bean name="student" class="com.xml.ioc.bean.Student"/>
+	<bean name="cat" class="com.xml.ioc.scan.Cat"/>
 </beans>

@@ -172,7 +172,7 @@ public abstract class AbstractApplicationEventMulticaster
 	 */
 	protected Collection<ApplicationListener<?>> getApplicationListeners(
 			ApplicationEvent event, ResolvableType eventType) {
-
+		//eventType  = new ResolvableType(clazz)
 		Object source = event.getSource();
 		Class<?> sourceType = (source != null ? source.getClass() : null);
 		ListenerCacheKey cacheKey = new ListenerCacheKey(eventType, sourceType);
@@ -193,6 +193,7 @@ public abstract class AbstractApplicationEventMulticaster
 					return retriever.getApplicationListeners();
 				}
 				retriever = new ListenerRetriever(true);
+				//获取监听器并对监听器排序
 				Collection<ApplicationListener<?>> listeners =
 						retrieveApplicationListeners(eventType, sourceType, retriever);
 				this.retrieverCache.put(cacheKey, retriever);
@@ -214,12 +215,14 @@ public abstract class AbstractApplicationEventMulticaster
 	 */
 	private Collection<ApplicationListener<?>> retrieveApplicationListeners(
 			ResolvableType eventType, @Nullable Class<?> sourceType, @Nullable ListenerRetriever retriever) {
-
+		//retriever = new ListenerRetriever(true);
 		List<ApplicationListener<?>> allListeners = new ArrayList<>();
 		Set<ApplicationListener<?>> listeners;
 		Set<String> listenerBeans;
 		synchronized (this.retrievalMutex) {
+			//获取自定义添加的监听器，执行addApplicationListener()手动添加的监听器
 			listeners = new LinkedHashSet<>(this.defaultRetriever.applicationListeners);
+			//IOC容器启动时加入到容器的监听器
 			listenerBeans = new LinkedHashSet<>(this.defaultRetriever.applicationListenerBeans);
 		}
 
@@ -228,6 +231,7 @@ public abstract class AbstractApplicationEventMulticaster
 		for (ApplicationListener<?> listener : listeners) {
 			if (supportsEvent(listener, eventType, sourceType)) {
 				if (retriever != null) {
+					//
 					retriever.applicationListeners.add(listener);
 				}
 				allListeners.add(listener);
@@ -273,6 +277,7 @@ public abstract class AbstractApplicationEventMulticaster
 			}
 		}
 
+		//对监听器进行排序
 		AnnotationAwareOrderComparator.sort(allListeners);
 		if (retriever != null && retriever.applicationListenerBeans.isEmpty()) {
 			retriever.applicationListeners.clear();
@@ -417,6 +422,7 @@ public abstract class AbstractApplicationEventMulticaster
 	 */
 	private class ListenerRetriever {
 
+		//找个时临时的
 		public final Set<ApplicationListener<?>> applicationListeners = new LinkedHashSet<>();
 
 		public final Set<String> applicationListenerBeans = new LinkedHashSet<>();

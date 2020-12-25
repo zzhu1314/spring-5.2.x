@@ -513,6 +513,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 
 		try {
+			//创建bean
 			Object beanInstance = doCreateBean(beanName, mbdToUse, args);
 			if (logger.isTraceEnabled()) {
 				logger.trace("Finished creating instance of bean '" + beanName + "'");
@@ -548,11 +549,22 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			throws BeanCreationException {
 
 		// Instantiate the bean.
+		//对bean实列化的包装类
 		BeanWrapper instanceWrapper = null;
 		if (mbd.isSingleton()) {
 			instanceWrapper = this.factoryBeanInstanceCache.remove(beanName);
 		}
 		if (instanceWrapper == null) {
+			/**
+			 * bean的实列化  有4中实列化方式 核心
+			 * 1. 使用普通工厂方法进行实列化
+			 * 2.使用静态工厂方法进行实列化
+			 * 3.对加了@Autowired注解的有参构造函数进行实列化（若是多个构造函数@Autowired的required属性必须为false）  对加了@Autowired注解的无参构造函数进行实列化
+			 * 4.对普通有参构造函数进行实例化（若是多个构造函数则会使用无参构造函数,若只有一个有参构造函数则就用它进行实列化） 对普通无参构造函数进行实例化
+			 * -----构造函数有参和无参进行实列化时也有差别
+			 * 实例化后堆内存已经存在对象，但对象没有属性
+			 */
+
 			instanceWrapper = createBeanInstance(beanName, mbd, args);
 		}
 		Object bean = instanceWrapper.getWrappedInstance();
@@ -565,6 +577,12 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		synchronized (mbd.postProcessingLock) {
 			if (!mbd.postProcessed) {
 				try {
+					/**
+					 * 使用AutowireAnnotationBeanPostProcessor对@Autoried和@Value的收集
+					 *
+					 * 使用CommonAnnaotationBeanPostProcessor对@Resource收集
+					 *
+					 */
 					applyMergedBeanDefinitionPostProcessors(mbd, beanType, beanName);
 				}
 				catch (Throwable ex) {
@@ -1090,6 +1108,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		for (BeanPostProcessor bp : getBeanPostProcessors()) {
 			if (bp instanceof MergedBeanDefinitionPostProcessor) {
 				MergedBeanDefinitionPostProcessor bdp = (MergedBeanDefinitionPostProcessor) bp;
+				//主要是AutowireAnnotationBeanPostProcessor和CommonAnnotationBeanPostProcessor
 				bdp.postProcessMergedBeanDefinition(mbd, beanType, beanName);
 			}
 		}
@@ -1173,6 +1192,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 
 		if (mbd.getFactoryMethodName() != null) {
+			//用工厂方法实列化(包括普通工厂和静态工厂)
 			return instantiateUsingFactoryMethod(beanName, mbd, args);
 		}
 
@@ -1197,9 +1217,11 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 
 		// Candidate constructors for autowiring?
+		//判断构造函数上是否有@Autowired注解或者只有一个普通构造函数，若有则获取
 		Constructor<?>[] ctors = determineConstructorsFromBeanPostProcessors(beanClass, beanName);
 		if (ctors != null || mbd.getResolvedAutowireMode() == AUTOWIRE_CONSTRUCTOR ||
 				mbd.hasConstructorArgumentValues() || !ObjectUtils.isEmpty(args)) {
+			//对@Autowirede的构造函数实列化
 			return autowireConstructor(beanName, mbd, ctors, args);
 		}
 
@@ -1210,6 +1232,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 
 		// No special handling: simply use no-arg constructor.
+		//对无参构造函数实列化
 		return instantiateBean(beanName, mbd);
 	}
 
@@ -1282,6 +1305,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			for (BeanPostProcessor bp : getBeanPostProcessors()) {
 				if (bp instanceof SmartInstantiationAwareBeanPostProcessor) {
 					SmartInstantiationAwareBeanPostProcessor ibp = (SmartInstantiationAwareBeanPostProcessor) bp;
+					//通过AutowiredAnnotationBeanPostProcessor获取带有@Autowired注解的构造函数
 					Constructor<?>[] ctors = ibp.determineCandidateConstructors(beanClass, beanName);
 					if (ctors != null) {
 						return ctors;
@@ -1352,7 +1376,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 */
 	protected BeanWrapper autowireConstructor(
 			String beanName, RootBeanDefinition mbd, @Nullable Constructor<?>[] ctors, @Nullable Object[] explicitArgs) {
-
+         //使用带有@Autowired注解的构造函数进行实列化
 		return new ConstructorResolver(this).autowireConstructor(beanName, mbd, ctors, explicitArgs);
 	}
 

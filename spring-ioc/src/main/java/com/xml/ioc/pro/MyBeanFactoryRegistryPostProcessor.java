@@ -18,7 +18,7 @@ import java.util.Arrays;
 /**
  * 自定退
  */
-@Component
+//@Component
 public class MyBeanFactoryRegistryPostProcessor implements BeanDefinitionRegistryPostProcessor {
 	/**
 	 * 对BeanDefinition的增删改查
@@ -36,7 +36,7 @@ public class MyBeanFactoryRegistryPostProcessor implements BeanDefinitionRegistr
 		propertyValues.add("name","zhizhi");
 		registry.registerBeanDefinition("dog",genericBeanDefinition);
 
-		registry.removeBeanDefinition("custommerScanner");
+		registry.removeBeanDefinition("customerScanner");
 
         //自定义扫描
 		ClassPathBeanDefinitionScanner scanner = new ClassPathBeanDefinitionScanner(registry);
