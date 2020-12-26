@@ -193,6 +193,7 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 	 * with the init and destroy annotation types set to
 	 * {@link javax.annotation.PostConstruct} and {@link javax.annotation.PreDestroy},
 	 * respectively.
+	 *实列化的时候会为PostConstruct，PreDestroy初始化
 	 */
 	public CommonAnnotationBeanPostProcessor() {
 		setOrder(Ordered.LOWEST_PRECEDENCE - 3);
@@ -291,7 +292,9 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 
 	@Override
 	public void postProcessMergedBeanDefinition(RootBeanDefinition beanDefinition, Class<?> beanType, String beanName) {
+		//查找生命周期相关的注解@PostConstrucr和@PreDestory方法
 		super.postProcessMergedBeanDefinition(beanDefinition, beanType, beanName);
+		//查询@Resource相关的属性和方法并封装成metadata对象
 		InjectionMetadata metadata = findResourceMetadata(beanName, beanType, null);
 		metadata.checkConfigMembers(beanDefinition);
 	}
@@ -381,6 +384,7 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 						throw new IllegalStateException("@Resource annotation is not supported on static fields");
 					}
 					if (!this.ignoredResourceTypes.contains(field.getType().getName())) {
+						//将加了Resource注解的属性封装成ResourceElement对象
 						currElements.add(new ResourceElement(field, field, null));
 					}
 				}
@@ -422,6 +426,7 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 						}
 						if (!this.ignoredResourceTypes.contains(paramTypes[0].getName())) {
 							PropertyDescriptor pd = BeanUtils.findPropertyForMethod(bridgedMethod, clazz);
+							//将加了Resource注解的方法封装成ResourceElement
 							currElements.add(new ResourceElement(method, bridgedMethod, pd));
 						}
 					}

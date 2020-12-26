@@ -520,6 +520,11 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		return this.applicationListeners;
 	}
 
+	/**
+	 * 这是一个模板方法 里面有很多钩子函数 供具体子类实现
+	 * @throws BeansException
+	 * @throws IllegalStateException
+	 */
 	@Override
 	public void refresh() throws BeansException, IllegalStateException {
 		synchronized (this.startupShutdownMonitor) {
@@ -554,6 +559,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 				// Invoke factory processors registered as beans in the context.
 				/**
+				 * 提前对BeanFactoryPostProcessor的实列化
 				 * 1.定义在bean实列化之前，BeanDefinitionRegistryPostProcessor完成对BeanDefinition的修改和注册，删除
 				 * 2.BeanFactoryPostProcessor对BeanFactory属性的修改
 				 */
@@ -561,7 +567,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 				// Register bean processors that intercept bean creation.
 				/**
-				 * 1.提前对beanPostProcessor的实列化
+				 * 1.提前对beanPostProcessor的实列化（getBean）
 				 * 2.对系统自定义的BeanPostProcessor 实列化
 				 * ConfigurationClassPostProcessor,AutowiredAnnotationBeanPostProcessor,CommonAnnotationBeanPostProcessor
 				 */
@@ -586,6 +592,16 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				registerListeners();
 
 				// Instantiate all remaining (non-lazy-init) singletons.
+				/*
+				 * 这个方法是spring中最重要的方法，没有之一
+				 * 所以这个方法一定要理解要具体看
+				 * 1、bean实例化过程
+				 * 2、ioc
+				 * 3、注解支持
+				 * 4、BeanPostProcessor的执行
+				 * 5、Aop的入口
+				 * */
+				// In
 				finishBeanFactoryInitialization(beanFactory);
 
 				// Last step: publish corresponding event.

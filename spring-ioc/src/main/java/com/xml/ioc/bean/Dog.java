@@ -4,23 +4,23 @@ package com.xml.ioc.bean;
 import com.xml.ioc.scan.Cat;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.annotation.PostConstruct;
+
 public class Dog {
 
 	private String name="小黄";
 
-	public String getName() {
-		return name;
-	}
+	@Autowired
+	private  Student student;
 
-	public void setName(String name) {
-		this.name = name;
-	}
-	public static Student student(){
-		return new Student();
-	}
+
 	/**
 	 * 使用@Autowired注解进行实列化
 	 */
+	@Autowired
+	public Dog(){
+		System.out.println("使用标记了@Autowired注解的无参构造函数进行实列化");
+	}
 	//@Autowired(required = false)
 	public Dog(Student student,Cat cat){
 		System.out.println(cat);

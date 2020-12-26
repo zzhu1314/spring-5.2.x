@@ -244,6 +244,12 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 	}
 
 
+	/**
+	 * 查找注解属性
+	 * @param beanDefinition the merged bean definition for the bean
+	 * @param beanType the actual type of the managed bean instance
+	 * @param beanName the name of the bean
+	 */
 	@Override
 	public void postProcessMergedBeanDefinition(RootBeanDefinition beanDefinition, Class<?> beanType, String beanName) {
 		//查找出改BeanDefinition中含有@Autowired和@Value注解的属性并封装成InjectionMetadata对象
@@ -304,7 +310,8 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 				candidateConstructors = this.candidateConstructorsCache.get(beanClass);
 				if (candidateConstructors == null) {
 					Constructor<?>[] rawCandidates;
-					try {//获取所有的构造函数
+					try {
+						//获取所有的构造函数
 						rawCandidates = beanClass.getDeclaredConstructors();
 					}
 					catch (Throwable ex) {
@@ -359,6 +366,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 							}
 							candidates.add(candidate);
 						}
+						//判断构造函数的参数个数是否为0，即是否为无参构造函数
 						else if (candidate.getParameterCount() == 0) {
 							defaultConstructor = candidate;
 						}
@@ -378,6 +386,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 						}
 						candidateConstructors = candidates.toArray(new Constructor<?>[0]);
 					}
+					//若候选的构造函数只有1个且参数个数大于0
 					else if (rawCandidates.length == 1 && rawCandidates[0].getParameterCount() > 0) {
 						candidateConstructors = new Constructor<?>[] {rawCandidates[0]};
 					}
@@ -388,6 +397,10 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 					else if (nonSyntheticConstructors == 1 && primaryConstructor != null) {
 						candidateConstructors = new Constructor<?>[] {primaryConstructor};
 					}
+					/**
+					 * 1.若为多个普通构造函数，最后则返回一个空数组new Constructor<?>[0]
+					 * 2.若为一个普通的无参构造函数 最后则返回一个空数组new Constructor<?>[0]
+					 */
 					else {
 						candidateConstructors = new Constructor<?>[0];
 					}
@@ -398,10 +411,19 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 		return (candidateConstructors.length > 0 ? candidateConstructors : null);
 	}
 
+	/**
+	 * 属性注入
+	 * @param pvs
+	 * @param bean
+	 * @param beanName
+	 * @return
+	 */
 	@Override
 	public PropertyValues postProcessProperties(PropertyValues pvs, Object bean, String beanName) {
+		//从缓存中拿 bean在实列化化后已经被缓存到了集合中
 		InjectionMetadata metadata = findAutowiringMetadata(beanName, bean.getClass(), pvs);
 		try {
+			//进行属性注入
 			metadata.inject(bean, beanName, pvs);
 		}
 		catch (BeanCreationException ex) {
@@ -452,6 +474,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 		/**
 		 * 封装成的InjectionMetadata会被放入缓存injectionMetadataCache中，供后面依赖注入
 		 */
+		//先从缓存中拿
 		InjectionMetadata metadata = this.injectionMetadataCache.get(cacheKey);
 		if (InjectionMetadata.needsRefresh(metadata, clazz)) {
 			synchronized (this.injectionMetadataCache) {
@@ -460,7 +483,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 					if (metadata != null) {
 						metadata.clear(pvs);
 					}
-					//查找@Autowied和@Value注解
+					//查找@Autowied和@Value注解构建metadata对象并放入缓存
 					metadata = buildAutowiringMetadata(clazz);
 					this.injectionMetadataCache.put(cacheKey, metadata);
 				}
@@ -479,8 +502,9 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 
 		do {
 			final List<InjectionMetadata.InjectedElement> currElements = new ArrayList<>();
-
+            //先查找加了@Autowired注解或者@Value注解的属性
 			ReflectionUtils.doWithLocalFields(targetClass, field -> {
+				//是否加了@Autowire的注解或者@Value属性的注解
 				MergedAnnotation<?> ann = findAutowiredAnnotation(field);
 				if (ann != null) {
 					if (Modifier.isStatic(field.getModifiers())) {
@@ -490,11 +514,13 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 						return;
 					}
 					boolean required = determineRequiredStatus(ann);
+					//把属性封装成AutowiredFieldElement对象
 					currElements.add(new AutowiredFieldElement(field, required));
 				}
 			});
-
+            //查找加了@Autowired属性或者@Value属性的方法
 			ReflectionUtils.doWithLocalMethods(targetClass, method -> {
+				//查找桥接方法
 				Method bridgedMethod = BridgeMethodResolver.findBridgedMethod(method);
 				if (!BridgeMethodResolver.isVisibilityBridgeMethodPair(method, bridgedMethod)) {
 					return;
@@ -515,6 +541,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 					}
 					boolean required = determineRequiredStatus(ann);
 					PropertyDescriptor pd = BeanUtils.findPropertyForMethod(bridgedMethod, clazz);
+					//封装成AutowiredMethodElement加入集合
 					currElements.add(new AutowiredMethodElement(method, required, pd));
 				}
 			});
@@ -523,7 +550,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 			targetClass = targetClass.getSuperclass();
 		}
 		while (targetClass != null && targetClass != Object.class);
-
+          //最后封装成一个InjectionMetadata对象
 		return InjectionMetadata.forElements(elements, clazz);
 	}
 
@@ -647,6 +674,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 				Assert.state(beanFactory != null, "No BeanFactory available");
 				TypeConverter typeConverter = beanFactory.getTypeConverter();
 				try {
+					//这里会触发依赖注入属性的getBean操作
 					value = beanFactory.resolveDependency(desc, beanName, autowiredBeanNames, typeConverter);
 				}
 				catch (BeansException ex) {
@@ -674,6 +702,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 				}
 			}
 			if (value != null) {
+				//通过反射设置依赖注入的属性
 				ReflectionUtils.makeAccessible(field);
 				field.set(bean, value);
 			}

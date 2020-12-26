@@ -115,6 +115,7 @@ public class InjectionMetadata {
 				}
 			}
 		}
+		//加入到缓存中
 		this.checkedElements = checkedElements;
 	}
 
@@ -127,6 +128,7 @@ public class InjectionMetadata {
 				if (logger.isTraceEnabled()) {
 					logger.trace("Processing injected element of bean '" + beanName + "': " + element);
 				}
+				//属性注入
 				element.inject(target, beanName, pvs);
 			}
 		}

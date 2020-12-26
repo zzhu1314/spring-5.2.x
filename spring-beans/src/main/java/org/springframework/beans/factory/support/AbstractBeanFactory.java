@@ -265,11 +265,18 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 		else {
 			// Fail if we're already creating this bean instance:
 			// We're assumably within a circular reference.
+			/**
+			 * 1.原型bean循环依赖在这里会报错
+			 * 原型bean在创建时会被放在prototypesCurrentlyInCreation这个ThreadLocal<Object> 中,而非集合
+			 * 以为 原型bean只能通过主动etBean才会被创建，报证线程安全
+			 */
+
 			if (isPrototypeCurrentlyInCreation(beanName)) {
 				throw new BeanCurrentlyInCreationException(beanName);
 			}
 
 			// Check if bean definition exists in this factory.
+			//获取父容器，在springmvc中会出现父子容器
 			BeanFactory parentBeanFactory = getParentBeanFactory();
 			if (parentBeanFactory != null && !containsBeanDefinition(beanName)) {
 				// Not found -> check parent.
@@ -296,6 +303,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			}
 
 			try {
+				//合并 bean的parent属性
 				RootBeanDefinition mbd = getMergedLocalBeanDefinition(beanName);
 				checkMergedBeanDefinition(mbd, beanName, args);
 
@@ -324,6 +332,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 
 				// Create bean instance.
 				if (mbd.isSingleton()) {
+					//具体实列化的过程，匿名对象
 					sharedInstance = getSingleton(beanName, () -> {
 						try {
 							return createBean(beanName, mbd, args);
@@ -343,10 +352,13 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 					// It's a prototype -> create a new instance.
 					Object prototypeInstance = null;
 					try {
+						//原型bean创建前加入到prototypesCurrentlyInCreation这个ThreaLocal对象中
 						beforePrototypeCreation(beanName);
+						//一样的跟单列bean一样实列化,但原型bean不走三级缓存，也不会从三级缓存中获取对象，无法支持循环依赖
 						prototypeInstance = createBean(beanName, mbd, args);
 					}
 					finally {
+						//从prototypesCurrentlyInCreation中移除
 						afterPrototypeCreation(beanName);
 					}
 					bean = getObjectForBeanInstance(prototypeInstance, name, beanName, mbd);
