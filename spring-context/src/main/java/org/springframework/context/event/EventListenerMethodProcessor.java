@@ -177,11 +177,13 @@ public class EventListenerMethodProcessor
 					for (EventListenerFactory factory : factories) {
 						if (factory.supportsMethod(method)) {
 							Method methodToUse = AopUtils.selectInvocableMethod(method, context.getType(beanName));
+							//将加了@EventListener注解的类 封装成ApplicationListener
 							ApplicationListener<?> applicationListener =
 									factory.createApplicationListener(beanName, targetType, methodToUse);
 							if (applicationListener instanceof ApplicationListenerMethodAdapter) {
 								((ApplicationListenerMethodAdapter) applicationListener).init(context, this.evaluator);
 							}
+							//applicationListener加入到派发器和factory容器的listeners容请中
 							context.addApplicationListener(applicationListener);
 							break;
 						}

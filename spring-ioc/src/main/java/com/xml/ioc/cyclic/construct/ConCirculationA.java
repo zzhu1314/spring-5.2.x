@@ -8,11 +8,13 @@ import org.springframework.stereotype.Service;
  * 不会走到三级缓存,未触发三级缓存就会在第二次拿的时候就会报错
  */
 @Service
-@Lazy
 public class ConCirculationA {
 
+	private ConCirculationB conCirculationB;
 	@Lazy
 	public ConCirculationA(ConCirculationB conCirculationB){
-		System.out.println("构造器的循环依赖"+conCirculationB);
+		System.out.println("构造器conCirculationB的循环依赖");
+		this.conCirculationB = conCirculationB;
+		System.out.println(this.conCirculationB);
 	}
 }

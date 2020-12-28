@@ -229,6 +229,7 @@ public abstract class AbstractApplicationEventMulticaster
 		// Add programmatically registered listeners, including ones coming
 		// from ApplicationListenerDetector (singleton beans and inner beans).
 		for (ApplicationListener<?> listener : listeners) {
+			//根据type获取监听器
 			if (supportsEvent(listener, eventType, sourceType)) {
 				if (retriever != null) {
 					//

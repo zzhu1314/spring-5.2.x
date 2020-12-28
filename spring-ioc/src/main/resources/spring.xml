@@ -28,4 +28,6 @@
 	<bean name="dog" class="com.xml.ioc.bean.Dog"  />
 	<bean name="student" class="com.xml.ioc.bean.Student"/>
 	<bean name="cat" class="com.xml.ioc.scan.Cat"/>
+
+	<bean name="destoryDemo" class="com.xml.ioc.dosposablebean.DisposableBeanDemo" destroy-method="xmlDestoryBean"/>
 </beans>

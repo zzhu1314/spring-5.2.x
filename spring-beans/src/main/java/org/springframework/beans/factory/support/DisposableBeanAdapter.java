@@ -32,6 +32,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.annotation.InitDestroyAnnotationBeanPostProcessor;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.DestructionAwareBeanPostProcessor;
 import org.springframework.lang.Nullable;
@@ -104,15 +105,22 @@ class DisposableBeanAdapter implements DisposableBean, Runnable, Serializable {
 		Assert.notNull(bean, "Disposable bean must not be null");
 		this.bean = bean;
 		this.beanName = beanName;
+		//判断当前bean是否实现了DisposableBean接口
 		this.invokeDisposableBean =
 				(this.bean instanceof DisposableBean && !beanDefinition.isExternallyManagedDestroyMethod("destroy"));
 		this.nonPublicAccessAllowed = beanDefinition.isNonPublicAccessAllowed();
 		this.acc = acc;
+		//判断bean标签是否有<bean />
 		String destroyMethodName = inferDestroyMethodIfNecessary(bean, beanDefinition);
+		//destory-method=""不等于空且当前bean(未实现DisposableBean接口或者实现了DisposableBean接口但destroyMethodName不等于destroy
 		if (destroyMethodName != null && !(this.invokeDisposableBean && "destroy".equals(destroyMethodName)) &&
 				!beanDefinition.isExternallyManagedDestroyMethod(destroyMethodName)) {
 			this.destroyMethodName = destroyMethodName;
+			//获取Method方法
 			Method destroyMethod = determineDestroyMethod(destroyMethodName);
+			/**
+			 * 销毁方法的参数只能未Boolean类型或者无参
+			 */
 			if (destroyMethod == null) {
 				if (beanDefinition.isEnforceDestroyMethod()) {
 					throw new BeanDefinitionValidationException("Could not find a destroy method named '" +
@@ -131,8 +139,14 @@ class DisposableBeanAdapter implements DisposableBean, Runnable, Serializable {
 				}
 				destroyMethod = ClassUtils.getInterfaceMethodIfPossible(destroyMethod);
 			}
+			//destory-method=""定义好了
 			this.destroyMethod = destroyMethod;
 		}
+		/**	获取BeanPostProcessor
+		 * 实际就是1.InitDestroyAnnotationBeanPostProcessor  执行@PreDestory标记的方法
+		 * 2.CommonAnnotationBeanPostProcessor  手机@PreDestory注解标记的方法
+		 */
+
 		this.beanPostProcessors = filterPostProcessors(postProcessors, bean);
 	}
 
@@ -239,6 +253,7 @@ class DisposableBeanAdapter implements DisposableBean, Runnable, Serializable {
 	public void destroy() {
 		if (!CollectionUtils.isEmpty(this.beanPostProcessors)) {
 			for (DestructionAwareBeanPostProcessor processor : this.beanPostProcessors) {
+				//执行加了@PreDestory注解的方法
 				processor.postProcessBeforeDestruction(this.bean, this.beanName);
 			}
 		}
@@ -255,6 +270,7 @@ class DisposableBeanAdapter implements DisposableBean, Runnable, Serializable {
 					}, this.acc);
 				}
 				else {
+					//执行实现DisposableBean接口的destory()方法
 					((DisposableBean) this.bean).destroy();
 				}
 			}

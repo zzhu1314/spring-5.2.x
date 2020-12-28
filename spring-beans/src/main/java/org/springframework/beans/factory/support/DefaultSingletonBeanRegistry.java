@@ -203,7 +203,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 					ObjectFactory<?> singletonFactory = this.singletonFactories.get(beanName);
 					if (singletonFactory != null) {
 						/**
-						 * 实际调的是getEarealyRefrence()方法，
+						 * 实际调的是getEarlyBeanReference()方法，
 						 * 是各种BeanPostProcessor对bean的装饰，可能返回一个代理对象，方便扩展
 						 * 三级缓存只会被调用一次，
 						 * 三级缓存通常情况就会直接返回一个非完整生命周期，未经过依赖注入的bean
@@ -535,10 +535,12 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 		}
 
 		String[] disposableBeanNames;
+		//获取到bean实例化完成后添加到DisposabelBeans的adapter
 		synchronized (this.disposableBeans) {
 			disposableBeanNames = StringUtils.toStringArray(this.disposableBeans.keySet());
 		}
 		for (int i = disposableBeanNames.length - 1; i >= 0; i--) {
+			//遍历销毁的disposableBeans处理销毁逻辑
 			destroySingleton(disposableBeanNames[i]);
 		}
 
@@ -571,6 +573,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	 */
 	public void destroySingleton(String beanName) {
 		// Remove a registered singleton of the given name, if any.
+		//交给子类移除
 		removeSingleton(beanName);
 
 		// Destroy the corresponding DisposableBean instance.
@@ -606,6 +609,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 		// Actually destroy the bean now...
 		if (bean != null) {
 			try {
+				//DisposableBeanAdapter这个适配器来实现
 				bean.destroy();
 			}
 			catch (Throwable ex) {
