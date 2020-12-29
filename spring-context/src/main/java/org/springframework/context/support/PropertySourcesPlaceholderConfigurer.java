@@ -128,7 +128,15 @@ public class PropertySourcesPlaceholderConfigurer extends PlaceholderConfigurerS
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
 		if (this.propertySources == null) {
 			this.propertySources = new MutablePropertySources();
+			//environment属性再BeanFactoryPostProcessor进行实列化时会赋值,因为实现了EnvironmentAware接口
 			if (this.environment != null) {
+				/**
+				 * Environment对象之前就创建好了
+				 * 1.将系统级别的配置加入到propertySources中
+				 * propertySources中的PropertySource中的泛型T对应environment
+				 * 并重写了getProperty()方法
+				 */
+
 				this.propertySources.addLast(
 					new PropertySource<Environment>(ENVIRONMENT_PROPERTIES_PROPERTY_SOURCE_NAME, this.environment) {
 						@Override
@@ -140,6 +148,10 @@ public class PropertySourcesPlaceholderConfigurer extends PlaceholderConfigurerS
 				);
 			}
 			try {
+				/**
+				 * 1.mergeProperties()将本地文件的配置封装成Properties对象加入到propertySources中
+				 * propertySources中的PropertySource中的泛型T对应Properties
+				 */
 				PropertySource<?> localPropertySource =
 						new PropertiesPropertySource(LOCAL_PROPERTIES_PROPERTY_SOURCE_NAME, mergeProperties());
 				if (this.localOverride) {
@@ -164,11 +176,11 @@ public class PropertySourcesPlaceholderConfigurer extends PlaceholderConfigurerS
 	 */
 	protected void processProperties(ConfigurableListableBeanFactory beanFactoryToProcess,
 			final ConfigurablePropertyResolver propertyResolver) throws BeansException {
-
+        //propertyResolver就是PropertySourcesPropertyResolver
 		propertyResolver.setPlaceholderPrefix(this.placeholderPrefix);
 		propertyResolver.setPlaceholderSuffix(this.placeholderSuffix);
 		propertyResolver.setValueSeparator(this.valueSeparator);
-
+		//这是一个匿名对象，@Value的依赖注入和property标签的属性注入会在这里
 		StringValueResolver valueResolver = strVal -> {
 			String resolved = (this.ignoreUnresolvablePlaceholders ?
 					propertyResolver.resolvePlaceholders(strVal) :

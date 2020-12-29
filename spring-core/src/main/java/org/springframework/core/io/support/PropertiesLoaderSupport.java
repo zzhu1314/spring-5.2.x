@@ -148,6 +148,7 @@ public abstract class PropertiesLoaderSupport {
 
 		if (this.localOverride) {
 			// Load properties from file upfront, to let local properties override.
+			//读取本地配置文件
 			loadProperties(result);
 		}
 
@@ -172,6 +173,7 @@ public abstract class PropertiesLoaderSupport {
 	 * @see #setLocations
 	 */
 	protected void loadProperties(Properties props) throws IOException {
+		//读取本地配置文件
 		if (this.locations != null) {
 			for (Resource location : this.locations) {
 				if (logger.isTraceEnabled()) {

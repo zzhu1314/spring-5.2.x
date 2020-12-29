@@ -163,6 +163,7 @@ final class PostProcessorRegistrationDelegate {
 				// skip - already processed in first phase above
 			}
 			else if (beanFactory.isTypeMatch(ppName, PriorityOrdered.class)) {
+				//PropertySourcePlaceholderConfigurer时BeanFactoryPostProcessor会提前实列化，同时实现了EnvironmentAware接口，会为Environment属性赋值
 				priorityOrderedPostProcessors.add(beanFactory.getBean(ppName, BeanFactoryPostProcessor.class));
 			}
 			else if (beanFactory.isTypeMatch(ppName, Ordered.class)) {

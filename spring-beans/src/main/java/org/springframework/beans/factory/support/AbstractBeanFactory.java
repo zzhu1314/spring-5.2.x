@@ -932,7 +932,9 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			return null;
 		}
 		String result = value;
+		//embeddedValueResolvers再对PropertySourcesPlaceholderConfigurer.postProcessBeanFactory()操作时加入到容器中
 		for (StringValueResolver resolver : this.embeddedValueResolvers) {
+			//对${}占位符进行解析
 			result = resolver.resolveStringValue(result);
 			if (result == null) {
 				return null;

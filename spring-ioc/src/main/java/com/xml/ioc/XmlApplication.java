@@ -7,6 +7,8 @@ import com.xml.ioc.cyclic.prototype.ProCirculationB;
 import com.xml.ioc.dosposablebean.DisposableBeanDemo;
 import com.xml.ioc.event.MyEvent;
 import com.xml.ioc.listener.MyListener02;
+import com.xml.ioc.properties.PropertiesBeanDemo;
+import com.xml.ioc.properties.ValueBean;
 import com.xml.ioc.scan.Cat;
 import org.springframework.context.event.SimpleApplicationEventMulticaster;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -40,8 +42,11 @@ public class XmlApplication {
 //		Dog dog = applicationContext.getBean(Dog.class);
 //		System.out.println(dog);
 		//System.out.println(dog.getStudent());
+		 /*//原型循环依赖
 		System.out.println(applicationContext.getBean(ProCirculationA.class));
-		System.out.println(applicationContext.getBean(ProCirculationB.class));
+		System.out.println(applicationContext.getBean(ProCirculationB.class));*/
+//		System.out.println(System.getProperties());
+//		System.out.println(System.getenv());
 
 		/**销毁bean**/
 		/*DisposableBeanDemo disposableBeanDemo = applicationContext.getBean(DisposableBeanDemo.class);
@@ -50,6 +55,12 @@ public class XmlApplication {
 		//所有销毁方法都会被调用，销毁逻辑都被放在了DisposableBeans中
 		applicationContext.close();
 */
+	/*	*//**properties属性的注入**//*
+		PropertiesBeanDemo propertiesBeanDemo = applicationContext.getBean(PropertiesBeanDemo.class);
+		System.out.println(propertiesBeanDemo.getName()+"-------"+propertiesBeanDemo.getAge());*/
+		/**@value属性注入**/
+		ValueBean valueBean = applicationContext.getBean(ValueBean.class);
+		System.out.println(valueBean.getName());
 	}
 
 

@@ -235,7 +235,7 @@ public abstract class AbstractPropertyResolver implements ConfigurablePropertyRe
 				this.valueSeparator, ignoreUnresolvablePlaceholders);
 	}
 
-	private String doResolvePlaceholders(String text, PropertyPlaceholderHelper helper) {
+	private String doResolvePlaceholders(String text, PropertyPlaceholderHelper helper) {//
 		return helper.replacePlaceholders(text, this::getPropertyAsRawString);
 	}
 

@@ -139,6 +139,7 @@ public class ClassPathXmlApplicationContext extends AbstractXmlApplicationContex
 			throws BeansException {
 
 		super(parent);
+		//创建出StandardEnvironment对象
 		setConfigLocations(configLocations);
 		if (refresh) {
 			//ioc核心入口

@@ -38,6 +38,11 @@ class PropertyPlaceholderBeanDefinitionParser extends AbstractPropertyLoadingBea
 	private static final String SYSTEM_PROPERTIES_MODE_DEFAULT = "ENVIRONMENT";
 
 
+	/**
+	 * 在对<content place-holder/>标签解析时会将PropertySourcesPlaceholderConfigurer加入到IOC中
+	 * @param element the {@code Element} that is being parsed
+	 * @return
+	 */
 	@Override
 	@SuppressWarnings("deprecation")
 	protected Class<?> getBeanClass(Element element) {
