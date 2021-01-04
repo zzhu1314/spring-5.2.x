@@ -876,7 +876,9 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			//将parent的bean的BeanDefinition属性合并到子元素 	<bean class="com.xml.ioc.bean.Student" parent=""/>
 			RootBeanDefinition bd = getMergedLocalBeanDefinition(beanName);
 			if (!bd.isAbstract() && bd.isSingleton() && !bd.isLazyInit()) {
+				//判断当前bean是否未FactoryBean
 				if (isFactoryBean(beanName)) {
+					//为factoryBean的BeanName加上&符
 					Object bean = getBean(FACTORY_BEAN_PREFIX + beanName);
 					if (bean instanceof FactoryBean) {
 						FactoryBean<?> factory = (FactoryBean<?>) bean;

@@ -39,7 +39,8 @@ class PropertyPlaceholderBeanDefinitionParser extends AbstractPropertyLoadingBea
 
 
 	/**
-	 * 在对<content place-holder/>标签解析时会将PropertySourcesPlaceholderConfigurer加入到IOC中
+	 * 在对<content place-holder/>标签解析时会通过parser.parse()将PropertySourcesPlaceholderConfigurer封装成BeanDefinition
+	 * 加入到IOC中
 	 * @param element the {@code Element} that is being parsed
 	 * @return
 	 */

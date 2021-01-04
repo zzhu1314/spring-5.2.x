@@ -6,10 +6,12 @@ import com.xml.ioc.cyclic.prototype.ProCirculationA;
 import com.xml.ioc.cyclic.prototype.ProCirculationB;
 import com.xml.ioc.dosposablebean.DisposableBeanDemo;
 import com.xml.ioc.event.MyEvent;
+import com.xml.ioc.factorybean.Shan;
 import com.xml.ioc.listener.MyListener02;
 import com.xml.ioc.properties.PropertiesBeanDemo;
 import com.xml.ioc.properties.ValueBean;
 import com.xml.ioc.scan.Cat;
+import com.xml.ioc.scope.ScopeBean;
 import org.springframework.context.event.SimpleApplicationEventMulticaster;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
@@ -57,10 +59,15 @@ public class XmlApplication {
 */
 	/*	*//**properties属性的注入**//*
 		PropertiesBeanDemo propertiesBeanDemo = applicationContext.getBean(PropertiesBeanDemo.class);
-		System.out.println(propertiesBeanDemo.getName()+"-------"+propertiesBeanDemo.getAge());*/
-		/**@value属性注入**/
+		System.out.println(propertiesBeanDemo.getName()+"-------"+propertiesBeanDemo.getAge());
+		*//**@value属性注入**//*
 		ValueBean valueBean = applicationContext.getBean(ValueBean.class);
-		System.out.println(valueBean.getName());
+		System.out.println(valueBean.getName());*/
+		//?为什么获取factoryBean的Shan.class能获取到
+//		System.out.println(applicationContext.getBean(Shan.class));
+		System.out.println(applicationContext.getBean(ScopeBean.class));
+		System.out.println(applicationContext.getBean(ScopeBean.class));
+		applicationContext.getBeanFactory().destroyScopedBean("");//销毁自定义scope的bean
 	}
 
 
