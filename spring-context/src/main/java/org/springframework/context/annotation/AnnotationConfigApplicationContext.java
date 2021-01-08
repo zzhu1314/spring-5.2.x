@@ -63,7 +63,9 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 * through {@link #register} calls and then manually {@linkplain #refresh refreshed}.
 	 */
 	public AnnotationConfigApplicationContext() {
+		//注册扫描注解的组件AutowireAnnotationBeanPostProcessor,CommonAnnotationBeanPostProcessor,ConfigurationClassPostProcessor
 		this.reader = new AnnotatedBeanDefinitionReader(this);
+		//注册@ComponentScan扫描的默认过滤规则@Component
 		this.scanner = new ClassPathBeanDefinitionScanner(this);
 	}
 
@@ -84,6 +86,7 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 * {@link Configuration @Configuration} classes
 	 */
 	public AnnotationConfigApplicationContext(Class<?>... componentClasses) {
+		//创建AnnotatedBeanDefinitionReader和ClassPathBeanDefinitionReader,调用父类构造器床DefaultListableBeanFactory
 		this();
 		register(componentClasses);
 		refresh();
@@ -159,6 +162,7 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	@Override
 	public void register(Class<?>... componentClasses) {
 		Assert.notEmpty(componentClasses, "At least one component class must be specified");
+		//将自动配置类注册成BeanDefinition
 		this.reader.register(componentClasses);
 	}
 

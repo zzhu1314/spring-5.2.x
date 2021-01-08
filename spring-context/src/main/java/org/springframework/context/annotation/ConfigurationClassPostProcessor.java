@@ -274,7 +274,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 					logger.debug("Bean definition has already been processed as a configuration class: " + beanDef);
 				}
 			}
-			//判断当前的bean是否为ConfigurationClassPostProcessor处理的类
+			//判断当前的beanDefinition是否为ConfigurationClassPostProcessor处理的类
 			else if (ConfigurationClassUtils.checkConfigurationClassCandidate(beanDef, this.metadataReaderFactory)) {
 				//将要处理的BeanDefinition封装成BeanDefinitionHolder
 				configCandidates.add(new BeanDefinitionHolder(beanDef, beanName));
@@ -319,10 +319,10 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 				this.resourceLoader, this.componentScanBeanNameGenerator, registry);
 
 		Set<BeanDefinitionHolder> candidates = new LinkedHashSet<>(configCandidates);
-		//已经解析过的BeanDefinition，避免类似@Import注解这种循环引入Bean
+		//已经解析过的BeanDefinition
 		Set<ConfigurationClass> alreadyParsed = new HashSet<>(configCandidates.size());
 		do {
-			//对候选bean进行解析
+			//对候选bean进行解析,并封装成ConfigurationClass
 			parser.parse(candidates);
 			parser.validate();
 
@@ -335,6 +335,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 						registry, this.sourceExtractor, this.resourceLoader, this.environment,
 						this.importBeanNameGenerator, parser.getImportRegistry());
 			}
+			//注册成beanDefinition
 			this.reader.loadBeanDefinitions(configClasses);
 			alreadyParsed.addAll(configClasses);
 

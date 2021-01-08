@@ -64,10 +64,11 @@ public class XmlApplication {
 		ValueBean valueBean = applicationContext.getBean(ValueBean.class);
 		System.out.println(valueBean.getName());*/
 		//?为什么获取factoryBean的Shan.class能获取到
-//		System.out.println(applicationContext.getBean(Shan.class));
+		applicationContext.getBean(Cat.class);
+	System.out.println(applicationContext.getBean(Shan.class));
+	/*	System.out.println(applicationContext.getBean(ScopeBean.class));
 		System.out.println(applicationContext.getBean(ScopeBean.class));
-		System.out.println(applicationContext.getBean(ScopeBean.class));
-		applicationContext.getBeanFactory().destroyScopedBean("");//销毁自定义scope的bean
+		applicationContext.getBeanFactory().destroyScopedBean("");//销毁自定义scope的bean*/
 	}
 
 
