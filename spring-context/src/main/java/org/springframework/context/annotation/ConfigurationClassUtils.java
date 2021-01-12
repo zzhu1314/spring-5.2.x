@@ -127,7 +127,7 @@ abstract class ConfigurationClassUtils {
 		}
 
 		Map<String, Object> config = metadata.getAnnotationAttributes(Configuration.class.getName());
-		//若注解信息里面有Configuration注解则为全部配
+		//若注解信息里面有Configuration注解则为全部配  config.get("proxyBeanMethods")获取Configuration的属性值
 		if (config != null && !Boolean.FALSE.equals(config.get("proxyBeanMethods"))) {
 			beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_FULL);
 		}

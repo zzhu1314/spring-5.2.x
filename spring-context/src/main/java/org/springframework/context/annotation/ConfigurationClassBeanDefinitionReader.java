@@ -117,6 +117,7 @@ class ConfigurationClassBeanDefinitionReader {
 	public void loadBeanDefinitions(Set<ConfigurationClass> configurationModel) {
 		TrackedConditionEvaluator trackedConditionEvaluator = new TrackedConditionEvaluator();
 		for (ConfigurationClass configClass : configurationModel) {
+			//解析Configuration中的属性并将其封装成BeanDefinition
 			loadBeanDefinitionsForConfigurationClass(configClass, trackedConditionEvaluator);
 		}
 	}
@@ -127,7 +128,7 @@ class ConfigurationClassBeanDefinitionReader {
 	 */
 	private void loadBeanDefinitionsForConfigurationClass(
 			ConfigurationClass configClass, TrackedConditionEvaluator trackedConditionEvaluator) {
-
+        //判断这个类型是否需要跳过
 		if (trackedConditionEvaluator.shouldSkip(configClass)) {
 			String beanName = configClass.getBeanName();
 			if (StringUtils.hasLength(beanName) && this.registry.containsBeanDefinition(beanName)) {
@@ -136,15 +137,18 @@ class ConfigurationClassBeanDefinitionReader {
 			this.importRegistry.removeImportingClass(configClass.getMetadata().getClassName());
 			return;
 		}
-
+        //判断configClass的ImportedBy容器是否为空，若不为空则表示当前类需要注册成BeanDefinition
+		//内部类和由@Import导入的普通类和@Import导入的ImportSelector类返回的类（递归解析成普通类）
 		if (configClass.isImported()) {
 			registerBeanDefinitionForImportedConfigurationClass(configClass);
 		}
+		//@Bean的注册
 		for (BeanMethod beanMethod : configClass.getBeanMethods()) {
 			loadBeanDefinitionsForBeanMethod(beanMethod);
 		}
-
+        //处理@ImportResource，通过XmlBeanDefinitionReader注册
 		loadBeanDefinitionsFromImportedResources(configClass.getImportedResources());
+		//调用实现了importBeanDefinitionRegistry接口的方法
 		loadBeanDefinitionsFromRegistrars(configClass.getImportBeanDefinitionRegistrars());
 	}
 
@@ -217,6 +221,7 @@ class ConfigurationClassBeanDefinitionReader {
 		if (metadata.isStatic()) {
 			// static @Bean method
 			if (configClass.getMetadata() instanceof StandardAnnotationMetadata) {
+				//静态工厂
 				beanDef.setBeanClass(((StandardAnnotationMetadata) configClass.getMetadata()).getIntrospectedClass());
 			}
 			else {
@@ -226,7 +231,9 @@ class ConfigurationClassBeanDefinitionReader {
 		}
 		else {
 			// instance @Bean method
+			//设置工厂bean的名字
 			beanDef.setFactoryBeanName(configClass.getBeanName());
+			//设置工厂方法的名字 ，后面bean的实例化会用到
 			beanDef.setUniqueFactoryMethodName(methodName);
 		}
 

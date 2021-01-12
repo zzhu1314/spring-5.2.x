@@ -54,12 +54,12 @@ final class ConfigurationClass {
 
 	@Nullable
 	private String beanName;
-    //加了@Import(A.Class)注解的类,导入A的类
+    //被谁导入，存储内部类的外部类和加了@Import注解的类
 	private final Set<ConfigurationClass> importedBy = new LinkedHashSet<>(1);
 
 	//保存@Bean的方法
 	private final Set<BeanMethod> beanMethods = new LinkedHashSet<>();
-
+    //@ImportResource信息
 	private final Map<String, Class<? extends BeanDefinitionReader>> importedResources =
 			new LinkedHashMap<>();
 	//保存实现了ImportBeanDefinitionRegistry接口的类

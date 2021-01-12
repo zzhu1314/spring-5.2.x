@@ -73,12 +73,16 @@ import org.springframework.util.ReflectionUtils;
 class ConfigurationClassEnhancer {
 
 	// The callbacks to use. Note that these callbacks must be stateless.
+	//会根据CallBackFilter返回的int值调用CALLBACKS中的方法
 	private static final Callback[] CALLBACKS = new Callback[] {
 			new BeanMethodInterceptor(),
 			new BeanFactoryAwareMethodInterceptor(),
 			NoOp.INSTANCE
 	};
-
+	/**
+	 * CALLBACK_FILTER 是回调过滤器
+	 * CALLBACKS是回调的具体方法
+	 */
 	private static final ConditionalCallbackFilter CALLBACK_FILTER = new ConditionalCallbackFilter(CALLBACKS);
 
 	private static final String BEAN_FACTORY_FIELD = "$$beanFactory";
@@ -106,6 +110,8 @@ class ConfigurationClassEnhancer {
 			}
 			return configClass;
 		}
+		//newEnhancer(configClass, classLoader)返回增强器Enhancer
+		//创建出代理对象
 		Class<?> enhancedClass = createClass(newEnhancer(configClass, classLoader));
 		if (logger.isTraceEnabled()) {
 			logger.trace(String.format("Successfully enhanced %s; enhanced class name is: %s",
@@ -119,11 +125,13 @@ class ConfigurationClassEnhancer {
 	 */
 	private Enhancer newEnhancer(Class<?> configSuperClass, @Nullable ClassLoader classLoader) {
 		Enhancer enhancer = new Enhancer();
+		//被代理的对象
 		enhancer.setSuperclass(configSuperClass);
 		enhancer.setInterfaces(new Class<?>[] {EnhancedConfiguration.class});
 		enhancer.setUseFactory(false);
 		enhancer.setNamingPolicy(SpringNamingPolicy.INSTANCE);
 		enhancer.setStrategy(new BeanFactoryAwareGeneratorStrategy(classLoader));
+		//设置回调的过滤器
 		enhancer.setCallbackFilter(CALLBACK_FILTER);
 		enhancer.setCallbackTypes(CALLBACK_FILTER.getCallbackTypes());
 		return enhancer;
@@ -270,6 +278,7 @@ class ConfigurationClassEnhancer {
 	 * handling of bean semantics such as scoping and AOP proxying.
 	 * @see Bean
 	 * @see ConfigurationClassEnhancer
+	 * @Bean的增强的拦截器
 	 */
 	private static class BeanMethodInterceptor implements MethodInterceptor, ConditionalCallback {
 
@@ -278,6 +287,7 @@ class ConfigurationClassEnhancer {
 		 * existence of this bean object.
 		 * @throws Throwable as a catch-all for any exception that may be thrown when invoking the
 		 * super implementation of the proxied method i.e., the actual {@code @Bean} method
+		 * 若在Configuration中调用@Bean方法会进行代理
 		 */
 		@Override
 		@Nullable
@@ -285,6 +295,7 @@ class ConfigurationClassEnhancer {
 					MethodProxy cglibMethodProxy) throws Throwable {
 
 			ConfigurableBeanFactory beanFactory = getBeanFactory(enhancedConfigInstance);
+			//获取方法名，方法名默认为BeanDefinition的name
 			String beanName = BeanAnnotationHelper.determineBeanNameFor(beanMethod);
 
 			// Determine whether this bean is a scoped-proxy
@@ -302,8 +313,10 @@ class ConfigurationClassEnhancer {
 			// proxy that intercepts calls to getObject() and returns any cached bean instance.
 			// This ensures that the semantics of calling a FactoryBean from within @Bean methods
 			// is the same as that of referring to a FactoryBean within XML. See SPR-6602.
+			//判断改bean是否为factoryBean
 			if (factoryContainsBean(beanFactory, BeanFactory.FACTORY_BEAN_PREFIX + beanName) &&
 					factoryContainsBean(beanFactory, beanName)) {
+				//获取FactoryBean对象
 				Object factoryBean = beanFactory.getBean(BeanFactory.FACTORY_BEAN_PREFIX + beanName);
 				if (factoryBean instanceof ScopedProxyFactoryBean) {
 					// Scoped proxy factory beans are a special case and should not be further proxied
@@ -330,7 +343,7 @@ class ConfigurationClassEnhancer {
 				}
 				return cglibMethodProxy.invokeSuper(enhancedConfigInstance, beanMethodArgs);
 			}
-
+             //若不是FactoryBean,是个普通bean
 			return resolveBeanReference(beanMethod, beanMethodArgs, beanFactory, beanName);
 		}
 
@@ -358,6 +371,7 @@ class ConfigurationClassEnhancer {
 						}
 					}
 				}
+				//beanFactory.getBean从缓存中取单列保证唯一性
 				Object beanInstance = (useArgs ? beanFactory.getBean(beanName, beanMethodArgs) :
 						beanFactory.getBean(beanName));
 				if (!ClassUtils.isAssignableValue(beanMethod.getReturnType(), beanInstance)) {
@@ -400,6 +414,11 @@ class ConfigurationClassEnhancer {
 			}
 		}
 
+		/**
+		 * 判断该方法是否加了@Bean注解 若加了走BeanMethodInterceptor拦截
+		 * @param candidateMethod
+		 * @return
+		 */
 		@Override
 		public boolean isMatch(Method candidateMethod) {
 			return (candidateMethod.getDeclaringClass() != Object.class &&
@@ -459,6 +478,7 @@ class ConfigurationClassEnhancer {
 			try {
 				Class<?> clazz = factoryBean.getClass();
 				boolean finalClass = Modifier.isFinal(clazz.getModifiers());
+				//若调用的时getObject又会创建代理
 				boolean finalMethod = Modifier.isFinal(clazz.getMethod("getObject").getModifiers());
 				if (finalClass || finalMethod) {
 					if (exposedType.isInterface()) {
@@ -485,7 +505,7 @@ class ConfigurationClassEnhancer {
 			catch (NoSuchMethodException ex) {
 				// No getObject() method -> shouldn't happen, but as long as nobody is trying to call it...
 			}
-
+             //若为factoryBean调用getObject方法，为factoryBean创建代理对象
 			return createCglibProxyForFactoryBean(factoryBean, beanFactory, beanName);
 		}
 
@@ -536,6 +556,7 @@ class ConfigurationClassEnhancer {
 			}
 
 			((Factory) fbProxy).setCallback(0, (MethodInterceptor) (obj, method, args, proxy) -> {
+				//调用getObject方法时回调这个匿名对象
 				if (method.getName().equals("getObject") && args.length == 0) {
 					return beanFactory.getBean(beanName);
 				}

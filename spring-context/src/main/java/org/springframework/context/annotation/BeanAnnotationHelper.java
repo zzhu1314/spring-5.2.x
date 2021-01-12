@@ -47,11 +47,13 @@ abstract class BeanAnnotationHelper {
 			// By default, the bean name is the name of the @Bean-annotated method
 			beanName = beanMethod.getName();
 			// Check to see if the user has explicitly set a custom bean name...
+			//获取方法上的@Bean注解
 			AnnotationAttributes bean =
 					AnnotatedElementUtils.findMergedAnnotationAttributes(beanMethod, Bean.class, false, false);
 			if (bean != null) {
 				String[] names = bean.getStringArray("name");
 				if (names.length > 0) {
+					//若注解定义了name，就用这个name
 					beanName = names[0];
 				}
 			}
