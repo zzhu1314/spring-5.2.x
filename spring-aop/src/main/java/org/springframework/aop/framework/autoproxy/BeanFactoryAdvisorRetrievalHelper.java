@@ -65,7 +65,7 @@ public class BeanFactoryAdvisorRetrievalHelper {
 	 * @see #isEligibleBean
 	 */
 	public List<Advisor> findAdvisorBeans() {
-		// Determine list of advisor bean names, if not cached already.
+		// Determine list of advisor bean names, if not cached already.会将实现了Advisor接口的bena缓存起来
 		String[] advisorNames = this.cachedAdvisorBeanNames;
 		if (advisorNames == null) {
 			// Do not initialize FactoryBeans here: We need to leave all regular beans

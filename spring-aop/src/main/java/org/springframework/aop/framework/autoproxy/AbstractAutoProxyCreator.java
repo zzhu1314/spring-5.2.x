@@ -257,6 +257,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 		// Create proxy here if we have a custom TargetSource.
 		// Suppresses unnecessary default instantiation of the target bean:
 		// The TargetSource will handle target instances in a custom fashion.
+		//若targetSource不为空,就会在实列前对bean进行代理
 		TargetSource targetSource = getCustomTargetSource(beanClass, beanName);
 		if (targetSource != null) {
 			if (StringUtils.hasLength(beanName)) {
@@ -340,7 +341,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 			return bean;
 		}
 		//isInfrastructureClass()判断当前类是否为Advice,Pointcut,Advisor或者AopInfrastructureBean的子类，若是直接跳过不代理
-		//shouldSkip()提前收集Advisor
+		//shouldSkip()提前收集Advisor，shouldSkip也被子类重写了
 		if (isInfrastructureClass(bean.getClass()) || shouldSkip(bean.getClass(), beanName)) {
 			this.advisedBeans.put(cacheKey, Boolean.FALSE);
 			return bean;

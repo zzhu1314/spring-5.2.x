@@ -223,7 +223,7 @@ public abstract class AopUtils {
 	 */
 	public static boolean canApply(Pointcut pc, Class<?> targetClass, boolean hasIntroductions) {
 		Assert.notNull(pc, "Pointcut must not be null");
-		//pc：AspectJExpressionPointcut
+		//pc：AspectJExpressionPointcut 同时实现了ClassFilter和MethodMatcher接口，在获取接口时就创建了Pointcut表达式
 		//pc.getClassFilter() 获取ClassFilter 进行 类的匹配
 		if (!pc.getClassFilter().matches(targetClass)) {
 			return false;
@@ -236,7 +236,7 @@ public abstract class AopUtils {
 		}
 
 		IntroductionAwareMethodMatcher introductionAwareMethodMatcher = null;
-		//是否为一个引介
+
 		if (methodMatcher instanceof IntroductionAwareMethodMatcher) {
 			introductionAwareMethodMatcher = (IntroductionAwareMethodMatcher) methodMatcher;
 		}
