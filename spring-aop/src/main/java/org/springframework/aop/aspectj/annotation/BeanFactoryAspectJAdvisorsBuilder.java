@@ -81,6 +81,7 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 	 * @see #isEligibleBean
 	 */
 	public List<Advisor> buildAspectJAdvisors() {
+		//获取缓存中切面的名称,若存在表示切面已经创建过了 直接走缓存
 		List<String> aspectNames = this.aspectBeanNames;
 
 		if (aspectNames == null) {
@@ -89,6 +90,7 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 				if (aspectNames == null) {
 					List<Advisor> advisors = new ArrayList<>();
 					aspectNames = new ArrayList<>();
+					//获取容器中所有的beanName
 					String[] beanNames = BeanFactoryUtils.beanNamesForTypeIncludingAncestors(
 							this.beanFactory, Object.class, true, false);
 					for (String beanName : beanNames) {
@@ -97,18 +99,24 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 						}
 						// We must be careful not to instantiate beans eagerly as in this case they
 						// would be cached by the Spring container but would not have been weaved.
+						//获取BeanName的类型
 						Class<?> beanType = this.beanFactory.getType(beanName);
 						if (beanType == null) {
 							continue;
 						}
+						//若该类型加了@Aspect注解
 						if (this.advisorFactory.isAspect(beanType)) {
+							//表示这是一个切面
 							aspectNames.add(beanName);
+							//创建出切面的metadata信息
 							AspectMetadata amd = new AspectMetadata(beanType, beanName);
 							if (amd.getAjType().getPerClause().getKind() == PerClauseKind.SINGLETON) {
+								//创建出实列化切面的工厂
 								MetadataAwareAspectInstanceFactory factory =
 										new BeanFactoryAspectInstanceFactory(this.beanFactory, beanName);
+								//将@Aspect切面构建成Advisor，获取Advisor的核心逻辑
 								List<Advisor> classAdvisors = this.advisorFactory.getAdvisors(factory);
-								if (this.beanFactory.isSingleton(beanName)) {
+								if (this.beanFactory.isSingleton(beanName)) {//将该切面构成的Advisor放入缓存
 									this.advisorsCache.put(beanName, classAdvisors);
 								}
 								else {
@@ -138,6 +146,7 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 		if (aspectNames.isEmpty()) {
 			return Collections.emptyList();
 		}
+		//直接从缓存中取
 		List<Advisor> advisors = new ArrayList<>();
 		for (String aspectName : aspectNames) {
 			List<Advisor> cachedAdvisors = this.advisorsCache.get(aspectName);

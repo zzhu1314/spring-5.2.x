@@ -27,6 +27,7 @@ import org.springframework.context.annotation.ComponentScanBeanDefinitionParser;
  * @author Mark Fisher
  * @author Juergen Hoeller
  * @since 2.5
+ * SPI
  */
 public class ContextNamespaceHandler extends NamespaceHandlerSupport {
 

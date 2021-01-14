@@ -29,8 +29,12 @@ public class DeferredImportSelectorDemo implements DeferredImportSelector {
 		return GroupDemo.class;
 	}
 
-	public class GroupDemo implements DeferredImportSelector.Group{
-        List<Entry> entrys = new ArrayList<>();
+	/**
+	 * 必须是静态内部类
+	 */
+	private static class GroupDemo implements DeferredImportSelector.Group{
+
+		List<Entry> entrys = new ArrayList<>();
 		@Override
 		public void process(AnnotationMetadata metadata, DeferredImportSelector selector) {
 			String[] classNames = selector.selectImports(metadata);

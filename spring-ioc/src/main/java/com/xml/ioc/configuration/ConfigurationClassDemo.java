@@ -11,7 +11,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 @Configuration
-@Import({ImportBeanDefinitionRegistryDemo.class})
+@Import({ImportBeanDefinitionRegistryDemo.class,DeferredImportSelectorDemo.class})
 //@ComponentScan("com.xml.ioc.conditional")
 @PropertySource(value = "classpath:application.properties")
 public class ConfigurationClassDemo implements EnvironmentAware {

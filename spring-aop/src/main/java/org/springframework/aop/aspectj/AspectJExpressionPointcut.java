@@ -195,6 +195,7 @@ public class AspectJExpressionPointcut extends AbstractExpressionPointcut
 		}
 		if (this.pointcutExpression == null) {
 			this.pointcutClassLoader = determinePointcutClassLoader();
+			//解析创建真正的表达式
 			this.pointcutExpression = buildPointcutExpression(this.pointcutClassLoader);
 		}
 		return this.pointcutExpression;
@@ -269,9 +270,11 @@ public class AspectJExpressionPointcut extends AbstractExpressionPointcut
 
 	@Override
 	public boolean matches(Class<?> targetClass) {
+		//获取真正的表达式的过程
 		PointcutExpression pointcutExpression = obtainPointcutExpression();
 		try {
 			try {
+				//进行匹配
 				return pointcutExpression.couldMatchJoinPointsInType(targetClass);
 			}
 			catch (ReflectionWorldException ex) {

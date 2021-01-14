@@ -16,6 +16,8 @@
 	<!--	<bean class="com.xml.ioc.bean.Student" parent="student1" depends-on="student1"/>-->
 	<!--自定义标签 -->
 	<context:component-scan base-package="com.xml.ioc" use-default-filters="true"/>
+	<!--aop也是自定义标签解析 将AnnotationAwareAspectJAutoProxyCreator注册成BeanDefinition-->
+	<aop:aspectj-autoproxy/>
 <!--
 	<context:property-placeholder location="classpath:application.properties"/>
 -->
