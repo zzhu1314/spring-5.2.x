@@ -74,6 +74,13 @@ public class ConvertingComparator<S, T> implements Comparator<S> {
 	}
 
 
+	/**
+	 * 根据注解在数组的顺序 排序
+	 * 根据方法名进行自然排序
+	 * @param o1
+	 * @param o2
+	 * @return
+	 */
 	@Override
 	public int compare(S o1, S o2) {
 		T c1 = this.converter.convert(o1);

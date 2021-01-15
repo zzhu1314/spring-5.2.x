@@ -156,7 +156,7 @@ final class JdkDynamicAopProxy implements AopProxy, InvocationHandler, Serializa
 	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 		Object oldProxy = null;
 		boolean setProxyContext = false;
-
+        //获取被代理
 		TargetSource targetSource = this.advised.targetSource;
 		Object target = null;
 
@@ -180,9 +180,10 @@ final class JdkDynamicAopProxy implements AopProxy, InvocationHandler, Serializa
 			}
 
 			Object retVal;
-
+            //若设置了@EnableAspectJAutoProxy(exposeProxy = true)的exposeProxy属性会将生成的代理对象放入ThreadLocal中
 			if (this.advised.exposeProxy) {
 				// Make invocation available if necessary.
+				//可以解决代理(事务)失效的问题
 				oldProxy = AopContext.setCurrentProxy(proxy);
 				setProxyContext = true;
 			}
@@ -202,6 +203,7 @@ final class JdkDynamicAopProxy implements AopProxy, InvocationHandler, Serializa
 				// Note that the final invoker must be an InvokerInterceptor so we know it does
 				// nothing but a reflective operation on the target, and no hot swapping or fancy proxying.
 				Object[] argsToUse = AopProxyUtils.adaptArgumentsIfNecessary(method, args);
+				//不需要增强直接反射调用方法
 				retVal = AopUtils.invokeJoinpointUsingReflection(target, method, argsToUse);
 			}
 			else {

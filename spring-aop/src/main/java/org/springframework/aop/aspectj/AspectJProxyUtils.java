@@ -49,6 +49,7 @@ public abstract class AspectJProxyUtils {
 			for (Advisor advisor : advisors) {
 				// Be careful not to get the Advice without a guard, as this might eagerly
 				// instantiate a non-singleton AspectJ aspect...
+				//判断advisor是否实现了InstantiationModelAwarePointcutAdvisor接口，由@Aspect注解创建的Advisor就会实现这个接口
 				if (isAspectJAdvice(advisor)) {
 					foundAspectJAdvice = true;
 					break;

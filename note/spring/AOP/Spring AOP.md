@@ -1,4 +1,4 @@
-# （Spring AOP 源码解析
+# Spring AOP 源码解析
 
 ## 前言
 
@@ -37,7 +37,7 @@
 
 ## 一、Advisor切面的收集
 
-    ### 1.bean代理的入口
+### 1.bean代理的入口
 
 **bean在三个地方有可能产生代理**
 
@@ -107,8 +107,12 @@ List<Advisor> classAdvisors = this.advisorFactory.getAdvisors(factory);
 
 (3)获取切面除了加了@PointCut注解的所有方法遍历获取到的方法,根据方法method封装成PointCut，每一个增强方法都会生成Advisor
 
+ 获取方法是会对符合增强的方法进行排序，排序的规则是先按注解排序,具体通过ConvertingComparator类进行排序
+
 ```java
-getAdvisorMethods(aspectClass)
+getAdvisorMethods(aspectClass);
+//对增强方法进行排序
+methods.sort(METHOD_COMPARATOR);
 //创建Advisor就是将增强方法(Advice)与Pointcut组合的类型
 Advisor advisor = getAdvisor(method, lazySingletonAspectInstanceFactory, 0, aspectName);
 ```
@@ -155,6 +159,7 @@ this.instantiatedAdvice = instantiateAdvice(this.declaredPointcut);
 
 ```java
 //主要是由PointCut的MethodMatcher(判断方法上是否需要增强如@Transactional)和ClassFilter判断整个类是否需要增强（根据通知方法(Advice)的表达式）
+//只要有一个方法增强就会为这个实列创建代理对象，具体哪个方法需要增强则在JdkDynamicAopProxy的invoke方法时具体判断
 List<Advisor> eligibleAdvisors = findAdvisorsThatCanApply(candidateAdvisors, beanClass, beanName);
 	//根据pointCut中的表达式判断candidateAdvisors是否对被代理的bean有效
 return AopUtils.findAdvisorsThatCanApply(candidateAdvisors, beanClass);
@@ -167,3 +172,25 @@ if (canApply(candidate, clazz, hasIntroductions)) {
 //获取methodMatcher进行方法匹配
 MethodMatcher methodMatcher = pc.getMethodMatcher();
 ```
+
+### 4.创建默认的Advisor
+
+```java
+//若存在有@Aspect注解标记的切面就会创建一个默认的Advisor --DefaultPointcutAdvisor,作用是用于参数传递
+extendAdvisors(eligibleAdvisors);
+```
+
+### 5.对所有advisor排序
+
+排序规则：创建的默认Advisor排在第一，根据实现了Advisor接口的Ordered(@Oreder注解，实现了Ordered接口和PriorityOrdered接口)排序
+
+，加了@Aspect注解按前面的方法排序不变
+
+```java
+if (!eligibleAdvisors.isEmpty()) {
+   eligibleAdvisors = sortAdvisors(eligibleAdvisors);
+}
+```
+
+## 二、创建代理bean
+

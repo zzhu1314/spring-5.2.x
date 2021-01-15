@@ -78,6 +78,7 @@ public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFacto
 		// @AfterThrowing methods due to the fact that AspectJAfterAdvice.invoke(MethodInvocation)
 		// invokes proceed() in a `try` block and only invokes the @After advice method
 		// in a corresponding `finally` block.
+		//先根据注解的类型排序
 		Comparator<Method> adviceKindComparator = new ConvertingComparator<>(
 				new InstanceComparator<>(
 						Around.class, Before.class, After.class, AfterReturning.class, AfterThrowing.class),
@@ -85,7 +86,9 @@ public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFacto
 					AspectJAnnotation<?> ann = AbstractAspectJAdvisorFactory.findAspectJAnnotationOnMethod(method);
 					return (ann != null ? ann.getAnnotation() : null);
 				});
+		//再根据方法名自然排序
 		Comparator<Method> methodNameComparator = new ConvertingComparator<>(Method::getName);
+		//先根据注解排序，若注解排序结果一致，再根据methodNameComparator方法名字自然拍寻
 		METHOD_COMPARATOR = adviceKindComparator.thenComparing(methodNameComparator);
 	}
 
@@ -129,7 +132,7 @@ public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFacto
 				new LazySingletonAspectInstanceFactoryDecorator(aspectInstanceFactory);
 
 		List<Advisor> advisors = new ArrayList<>();
-		//getAdvisorMethods(aspectClass)：获取所有非@Pointcut注解的方法
+		//getAdvisorMethods(aspectClass)：获取所有非@Pointcut注解的方法,获取方法的时候会直接对方法方法排序，方法排序就是最终advisor顺序
 		for (Method method : getAdvisorMethods(aspectClass)) {
 			// Prior to Spring Framework 5.2.7, advisors.size() was supplied as the declarationOrderInAspect
 			// to getAdvisor(...) to represent the "current position" in the declared methods list.
@@ -173,6 +176,7 @@ public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFacto
 			}
 		}, ReflectionUtils.USER_DECLARED_METHODS);
 		if (methods.size() > 1) {
+			//对增强方法进行排序
 			methods.sort(METHOD_COMPARATOR);
 		}
 		return methods;

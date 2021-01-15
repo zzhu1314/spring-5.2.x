@@ -98,7 +98,9 @@ public abstract class AbstractAdvisorAutoProxyCreator extends AbstractAutoProxyC
 		List<Advisor> candidateAdvisors = findCandidateAdvisors();
 		//判断获取到的Advisor是否都要对这个Bean增强(解析Advisor中pointcut的表达式,判断这个bean是否需要增强)
 		//主要是由PointCut的MethodMatcher(判断方法上是否需要增强如@Transactional)和ClassFilter判断整个类是否需要增强（根据@Aspect的表达式）
+		//只要有一个方法增强就会为这个实列创建代理对象，具体哪个方法需要增强则在JdkDynamicAopProxy的invoke方法时具体判断
 		List<Advisor> eligibleAdvisors = findAdvisorsThatCanApply(candidateAdvisors, beanClass, beanName);
+		//若存在有@Aspect注解标记的切面就会创建一个默认的Advisor --DefaultPointcutAdvisor,作用是用于参数传递
 		extendAdvisors(eligibleAdvisors);
 		if (!eligibleAdvisors.isEmpty()) {
 			eligibleAdvisors = sortAdvisors(eligibleAdvisors);

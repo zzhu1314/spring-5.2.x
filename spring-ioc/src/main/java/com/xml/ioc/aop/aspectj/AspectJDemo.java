@@ -18,7 +18,10 @@ public class AspectJDemo {
 	public void cl(){
 
 	}
+	@Pointcut("execution(public * com.xml.ioc.aop.proxy.ProxyDisabledDemo.guojie2(..))")
+	public void cl2(){
 
+	}
 	@Before(value = "cl()")
 	public void before1(){
 		System.out.println("proxy before1.......");
@@ -26,6 +29,10 @@ public class AspectJDemo {
 	@Before(value = "cl()")
 	public void before2(){
 		System.out.println("proxy before2.......");
+	}
+	@Before(value = "cl2()")
+	public void before3(){
+		System.out.println("proxy before3.......");
 	}
 
 	@Around(value = "cl()")

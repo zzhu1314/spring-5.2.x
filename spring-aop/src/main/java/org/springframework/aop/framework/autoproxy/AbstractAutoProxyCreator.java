@@ -351,6 +351,14 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 		Object[] specificInterceptors = getAdvicesAndAdvisorsForBean(bean.getClass(), beanName, null);
 		if (specificInterceptors != DO_NOT_PROXY) {
 			this.advisedBeans.put(cacheKey, Boolean.TRUE);
+			/**
+			 * bean.getClass() 被代理对象的class
+			 * beanName：被代理对象beanName
+			 * specificInterceptors:收集到的可用的advisor
+			 *  new SingletonTargetSource(bean)：targetSource包含了被代理对象
+			 *  每一个需要被代理的bean都会创建一个新的 ProxyFactory和JdkDynamicAopProxy
+			 * 最终调用被代理对象的方法会调到JdkDynamicAopProxy的invoke()方法
+			 */
 			Object proxy = createProxy(
 					bean.getClass(), beanName, specificInterceptors, new SingletonTargetSource(bean));
 			this.proxyTypes.put(cacheKey, proxy.getClass());
@@ -449,10 +457,21 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 		if (this.beanFactory instanceof ConfigurableListableBeanFactory) {
 			AutoProxyUtils.exposeTargetClass((ConfigurableListableBeanFactory) this.beanFactory, beanName, beanClass);
 		}
-
+		/**
+		 * 创建代理工厂
+		 */
 		ProxyFactory proxyFactory = new ProxyFactory();
+		/**
+		 * 拷贝AnnotationAwareAspectJAutoCreator的proxyTargetClass 和 exposeProxy 属性
+		 * proxyTargetClass：是否开启CGLIB代理 默认false
+		 * exposeProxy是否将代理对象放入ThreadLocal中 默认false
+		 */
 		proxyFactory.copyFrom(this);
-
+		/**
+		 *通过计算判断到底用那种代理
+		 * !proxyFactory.isProxyTargetClass()表示用jdk动态代理
+		 * 但又没实现接口，虽然设置的是false但最终还是会用CGLIB代理
+		 */
 		if (!proxyFactory.isProxyTargetClass()) {
 			if (shouldProxyTargetClass(beanClass, beanName)) {
 				proxyFactory.setProxyTargetClass(true);
@@ -461,9 +480,13 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 				evaluateProxyInterfaces(beanClass, proxyFactory);
 			}
 		}
-
+		/**
+		 * 根据前面收集到可用的Advisor和自定义的全局Advisor组合成新的Advisor
+		 */
 		Advisor[] advisors = buildAdvisors(beanName, specificInterceptors);
+		//advisor包装到proxyFactory中
 		proxyFactory.addAdvisors(advisors);
+		//targetSource包装到proxyFactory中 targetSource中包装了被代理bean
 		proxyFactory.setTargetSource(targetSource);
 		customizeProxyFactory(proxyFactory);
 
@@ -513,6 +536,10 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	 */
 	protected Advisor[] buildAdvisors(@Nullable String beanName, @Nullable Object[] specificInterceptors) {
 		// Handle prototypes correctly...
+		/**
+		 * 收集全局Advisor
+		 * 需要自定义Advisor
+		 */
 		Advisor[] commonInterceptors = resolveInterceptorNames();
 
 		List<Object> allInterceptors = new ArrayList<>();
@@ -549,6 +576,11 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 		BeanFactory bf = this.beanFactory;
 		ConfigurableBeanFactory cbf = (bf instanceof ConfigurableBeanFactory ? (ConfigurableBeanFactory) bf : null);
 		List<Advisor> advisors = new ArrayList<>();
+		/**
+		 * interceptorNames是AnnotationAwareAspectJAutoProxyCreator中的属性
+		 * 需要开发者自定义创建
+		 * 全局拦截的DefaultPointcutAdvisor(methodInterceptor)
+		 */
 		for (String beanName : this.interceptorNames) {
 			if (cbf == null || !cbf.isCurrentlyInCreation(beanName)) {
 				Assert.state(bf != null, "BeanFactory required for resolving interceptor names");

@@ -4,7 +4,7 @@ import java.lang.reflect.Proxy;
 
 /**
  * proxy对象有Parent属性即InvokingHandler，InvokingHandler又包含目标对象，源码中的h是指InvokingHandler属性
- * 最终由Parent去调的invoke()方法
+ * 最终由Parent(h)去调的invoke()方法
  */
 public class Test {
 	public static void main(String[] args) {

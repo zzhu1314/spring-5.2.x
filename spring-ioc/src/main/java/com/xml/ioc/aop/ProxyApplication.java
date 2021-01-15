@@ -9,7 +9,7 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
  * springboot开启的是自动配置AopAutoConfiguration
  */
 @Configuration
-@EnableAspectJAutoProxy
+@EnableAspectJAutoProxy(proxyTargetClass = false,exposeProxy = true)
 @ComponentScan(value = {"com.xml.ioc.aop"})
 public class ProxyApplication {
 

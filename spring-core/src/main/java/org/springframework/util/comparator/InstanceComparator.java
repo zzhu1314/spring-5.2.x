@@ -54,11 +54,17 @@ public class InstanceComparator<T> implements Comparator<T> {
 
 	@Override
 	public int compare(T o1, T o2) {
+		//获取顺序
 		int i1 = getOrder(o1);
 		int i2 = getOrder(o2);
 		return (Integer.compare(i1, i2));
 	}
 
+	/**
+	 * 根据数组下标获取顺序
+	 * @param object
+	 * @return
+	 */
 	private int getOrder(@Nullable T object) {
 		if (object != null) {
 			for (int i = 0; i < this.instanceOrder.length; i++) {
