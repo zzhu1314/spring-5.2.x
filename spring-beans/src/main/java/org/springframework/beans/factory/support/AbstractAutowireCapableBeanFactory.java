@@ -660,7 +660,10 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 						mbd.getResourceDescription(), beanName, "Initialization of bean failed", ex);
 			}
 		}
-
+		/**
+		 *	若允许循环依赖且单列，且根据名字能从容器中(二级缓存)获取已经创建好的bean，则直接赋值
+		 *	情况:自己依赖自己
+		 */
 		if (earlySingletonExposure) {
 			Object earlySingletonReference = getSingleton(beanName, false);
 			if (earlySingletonReference != null) {
@@ -1011,6 +1014,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 * @param mbd      the merged bean definition for the bean
 	 * @param bean     the raw bean instance
 	 * @return the object to expose as bean reference
+	 * 三级缓存产生代理对象
 	 */
 	protected Object getEarlyBeanReference(String beanName, RootBeanDefinition mbd, Object bean) {
 		Object exposedObject = bean;

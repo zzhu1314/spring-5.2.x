@@ -132,7 +132,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	private BeanFactory beanFactory;
 
 	private final Set<String> targetSourcedBeans = Collections.newSetFromMap(new ConcurrentHashMap<>(16));
-
+    //存放循环依赖时被提前代理的bean
 	private final Map<Object, Object> earlyProxyReferences = new ConcurrentHashMap<>(16);
 
 	private final Map<Object, Class<?>> proxyTypes = new ConcurrentHashMap<>(16);
@@ -291,11 +291,15 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	 * Create a proxy with the configured interceptors if the bean is
 	 * identified as one to proxy by the subclass.
 	 * @see #getAdvicesAndAdvisorsForBean
+	 *
 	 */
 	@Override
 	public Object postProcessAfterInitialization(@Nullable Object bean, String beanName) {
 		if (bean != null) {
 			Object cacheKey = getCacheKey(bean.getClass(), beanName);
+			/**
+			 * earlyProxyReferences：循环依赖产生代理bean时会在三级缓存提前实例化产生代理bean放入earlyProxyReferences容器
+			 */
 			if (this.earlyProxyReferences.remove(cacheKey) != bean) {
 				//判断是否需要进行代理
 				return wrapIfNecessary(bean, beanName, cacheKey);

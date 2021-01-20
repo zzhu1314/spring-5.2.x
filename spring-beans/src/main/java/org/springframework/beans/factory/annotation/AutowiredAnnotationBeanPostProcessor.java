@@ -420,7 +420,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 	 */
 	@Override
 	public PropertyValues postProcessProperties(PropertyValues pvs, Object bean, String beanName) {
-		//从缓存中拿 bean在实列化化后已经被缓存到了集合中
+		//从缓存中拿 bean在实列化化后根据收集到的注解放入缓存中，被缓存到了集合中
 		InjectionMetadata metadata = findAutowiringMetadata(beanName, bean.getClass(), pvs);
 		try {
 			//进行属性注入

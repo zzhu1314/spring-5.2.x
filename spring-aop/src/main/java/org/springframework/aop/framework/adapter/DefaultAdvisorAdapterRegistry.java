@@ -78,10 +78,23 @@ public class DefaultAdvisorAdapterRegistry implements AdvisorAdapterRegistry, Se
 	@Override
 	public MethodInterceptor[] getInterceptors(Advisor advisor) throws UnknownAdviceTypeException {
 		List<MethodInterceptor> interceptors = new ArrayList<>(3);
+		//获取切面的增强逻辑
 		Advice advice = advisor.getAdvice();
+		/**
+		 * 若advice实现了MethodInterceptor接口 就直接转成MethodInterceptor
+		 * 直接实现了MethodInterceptor接口的有
+		 * 1.@Around
+		 * 2.@After
+		 * 3.Spring自己扩展的默认Advisor  new DefaultPointcutAdvisor(ExposeInvocationInterceptor.INSTANCE)---将MethodInvocation放入ThreadLocal中，进行参数传递
+		 */
+
 		if (advice instanceof MethodInterceptor) {
 			interceptors.add((MethodInterceptor) advice);
 		}
+		/**
+		 * 对@Before，@AfterReturning，@AfterThrowing的增强进行封装
+		 * 将其封装成MethodBeforeAdviceInterceptor，AfterReturningAdviceInterceptor，ThrowsAdviceInterceptor
+		 */
 		for (AdvisorAdapter adapter : this.adapters) {
 			if (adapter.supportsAdvice(advice)) {
 				interceptors.add(adapter.getInterceptor(advisor));

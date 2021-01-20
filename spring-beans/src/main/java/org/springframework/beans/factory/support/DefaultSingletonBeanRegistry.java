@@ -191,7 +191,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 		//若一级缓存中没有，且当前bean正在创建中
 		if (singletonObject == null && isSingletonCurrentlyInCreation(beanName)) {
 			synchronized (this.singletonObjects) {
-				//从二级缓存中获取
+				//从二级缓存中获取，当出现自己依赖自己的时候会调用到二级缓存
 				singletonObject = this.earlySingletonObjects.get(beanName);
 				/**
 				 * 二级缓存中没有,且允许循环依赖
@@ -207,6 +207,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 						 * 是各种BeanPostProcessor对bean的装饰，可能返回一个代理对象，方便扩展
 						 * 三级缓存只会被调用一次，
 						 * 三级缓存通常情况就会直接返回一个非完整生命周期，未经过依赖注入的bean
+						 * 三级缓存有可能会返回一个代理对象
 						 */
 						singletonObject = singletonFactory.getObject();
 						//放入到二级缓存

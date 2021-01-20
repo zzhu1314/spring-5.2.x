@@ -52,6 +52,11 @@ public class ContextAnnotationAutowireCandidateResolver extends QualifierAnnotat
 		return (isLazy(descriptor) ? buildLazyResolutionProxy(descriptor, beanName) : null);
 	}
 
+	/**
+	 * 判断是否有@Lazy注解
+	 * @param descriptor
+	 * @return
+	 */
 	protected boolean isLazy(DependencyDescriptor descriptor) {
 		for (Annotation ann : descriptor.getAnnotations()) {
 			Lazy lazy = AnnotationUtils.getAnnotation(ann, Lazy.class);
@@ -72,10 +77,19 @@ public class ContextAnnotationAutowireCandidateResolver extends QualifierAnnotat
 		return false;
 	}
 
+	/**
+	 * 创建懒加载的代理对象
+	 * @param descriptor
+	 * @param beanName
+	 * @return
+	 */
 	protected Object buildLazyResolutionProxy(final DependencyDescriptor descriptor, final @Nullable String beanName) {
 		Assert.state(getBeanFactory() instanceof DefaultListableBeanFactory,
 				"BeanFactory needs to be a DefaultListableBeanFactory");
 		final DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) getBeanFactory();
+		/**
+		 * TargetSource中含有被代理对象
+		 */
 		TargetSource ts = new TargetSource() {
 			@Override
 			public Class<?> getTargetClass() {
@@ -85,8 +99,13 @@ public class ContextAnnotationAutowireCandidateResolver extends QualifierAnnotat
 			public boolean isStatic() {
 				return false;
 			}
+			/**
+			 * 调用被代理方法时，会通过动态代理，调用到getTarget()方法
+			 * @return
+			 */
 			@Override
 			public Object getTarget() {
+				//这里触发懒加载的getBean逻辑，获取到目标对象
 				Object target = beanFactory.doResolveDependency(descriptor, beanName, null, null);
 				if (target == null) {
 					Class<?> type = getTargetClass();
@@ -114,6 +133,7 @@ public class ContextAnnotationAutowireCandidateResolver extends QualifierAnnotat
 		if (dependencyType.isInterface()) {
 			pf.addInterface(dependencyType);
 		}
+		//获取代理对象
 		return pf.getProxy(beanFactory.getBeanClassLoader());
 	}
 

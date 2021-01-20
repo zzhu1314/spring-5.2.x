@@ -1,16 +1,13 @@
 package com.xml.ioc.aop.aspectj;
 
 import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.annotation.Around;
-import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Before;
-import org.aspectj.lang.annotation.Pointcut;
+import org.aspectj.lang.annotation.*;
 import org.springframework.stereotype.Component;
 
 /**
  * 切面
  */
-@Component
+//@Component
 @Aspect
 public class AspectJDemo {
 
@@ -18,22 +15,22 @@ public class AspectJDemo {
 	public void cl(){
 
 	}
-	@Pointcut("execution(public * com.xml.ioc.aop.proxy.ProxyDisabledDemo.guojie2(..))")
+/*	@Pointcut("execution(public * com.xml.ioc.aop.proxy.ProxyDisabledDemo.guojie2(..))")
 	public void cl2(){
 
 	}
 	@Before(value = "cl()")
 	public void before1(){
 		System.out.println("proxy before1.......");
-	}
+	}*/
 	@Before(value = "cl()")
 	public void before2(){
 		System.out.println("proxy before2.......");
 	}
-	@Before(value = "cl2()")
+	/*@Before(value = "cl2()")
 	public void before3(){
 		System.out.println("proxy before3.......");
-	}
+	}*/
 
 	@Around(value = "cl()")
 	public void around1(ProceedingJoinPoint joinPoint){
@@ -46,7 +43,7 @@ public class AspectJDemo {
 		System.out.println("around1 after.....");
 	}
 
-	@Around(value = "cl()")
+	/*@Around(value = "cl()")
 	public void around2(ProceedingJoinPoint joinPoint){
 		System.out.println("around2 before.....");
 		try {
@@ -55,5 +52,5 @@ public class AspectJDemo {
 			throwable.printStackTrace();
 		}
 		System.out.println("around2 after.....");
-	}
+	}*/
 }

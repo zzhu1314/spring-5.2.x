@@ -39,6 +39,7 @@ import org.springframework.core.PriorityOrdered;
  *
  * @author Rod Johnson
  * @author Juergen Hoeller
+ *这是一个单列
  */
 @SuppressWarnings("serial")
 public final class ExposeInvocationInterceptor implements MethodInterceptor, PriorityOrdered, Serializable {
@@ -87,6 +88,15 @@ public final class ExposeInvocationInterceptor implements MethodInterceptor, Pri
 	private ExposeInvocationInterceptor() {
 	}
 
+	/**
+	 * 通过第一次调用将methodInvocation放入ThreadLocal中、
+	 * 因为类如@Before，没有传参就无法通过参数获取到methodInvocation只能通过ThreadLocal获取
+	 * @Around 的方法会通过传参jointPoint将参数methodInvocation传入方法中
+	 *
+	 * @param mi
+	 * @return
+	 * @throws Throwable
+	 */
 	@Override
 	public Object invoke(MethodInvocation mi) throws Throwable {
 		MethodInvocation oldInvocation = invocation.get();

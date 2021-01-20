@@ -4,7 +4,7 @@
 
 **AOP 基本概念:**
 
-```java
+```
 切面(Aspect) ==> 代表一类功能(日志功能,事务功能,缓存功能)
 切面由切入点和增强组成,它既包括横切逻辑的定义，也包括连接点的定义，Spring AOP就是负责实施切面的框架，它将切面所定义的横切逻辑织入到切面所指定的连接点中
 在spring AOP中 advisor可理解为一个切面，pointCut连接点,advice增强
@@ -51,7 +51,7 @@
 
 #### 2.1调用后置处理器postProcessAfterInitialization()方法进入bean的代理
 
-```java
+```
 @Override
 public Object postProcessAfterInitialization(@Nullable Object bean, String beanName) {
    if (bean != null) {
@@ -67,21 +67,21 @@ public Object postProcessAfterInitialization(@Nullable Object bean, String beanN
 
 *收集所有的Advisor*
 
-```java
+```
 //AnnotationAwareAspectJAutoProxyCreator重写了
 List<Advisor> candidateAdvisors = findCandidateAdvisors();
 ```
 
 #### 2.2收集实现了Advisor接口的Advisor实列
 
-```java
+```
 //调用父类的findCandidateAdvisors寻找实现了Advisor接口的类型
 List<Advisor> advisors = super.findCandidateAdvisors();
 ```
 
 #### 2.3收集由@Aspect修饰的类,组合成Advisor
 
-```java
+```
 //寻找加了@Aspect注解的切面 封装成Advisor类型
 if (this.aspectJAdvisorsBuilder != null) {
    advisors.addAll(this.aspectJAdvisorsBuilder.buildAspectJAdvisors());
@@ -90,14 +90,14 @@ if (this.aspectJAdvisorsBuilder != null) {
 
 （1）获取所有的bean的BeanName，遍历beanName，根据beanName获取bean类型，判断该bean上是否有@Aspect注解
 
-```java
+```
 //若该类型加了@Aspect注解
 if (this.advisorFactory.isAspect(beanType))
 ```
 
 (2)创建实列化切面的工厂，解析切面类，组合生成Advisor（PointCut与Advice方法组合生成Advisor）
 
-```java
+```
 //创建出实列化切面的工厂
 MetadataAwareAspectInstanceFactory factory =
       new BeanFactoryAspectInstanceFactory(this.beanFactory, beanName);
@@ -109,7 +109,7 @@ List<Advisor> classAdvisors = this.advisorFactory.getAdvisors(factory);
 
  获取方法是会对符合增强的方法进行排序，排序的规则是先按注解排序,具体通过ConvertingComparator类进行排序
 
-```java
+```
 getAdvisorMethods(aspectClass);
 //对增强方法进行排序
 methods.sort(METHOD_COMPARATOR);
@@ -119,7 +119,7 @@ Advisor advisor = getAdvisor(method, lazySingletonAspectInstanceFactory, 0, aspe
 
 (4)根据method创建出AspectJExpressionPointcut，这里会过滤掉没有没有Pointcut.class, Around.class, Before.class, After.class, AfterReturning.class, AfterThrowing.class注解的方法
 
-```java
+```
 validate(aspectInstanceFactory.getAspectMetadata().getAspectClass());
 //根据增强方法上的表达式封装成Pointcut
 AspectJExpressionPointcut expressionPointcut = getPointcut(
@@ -140,7 +140,7 @@ expressionPointcut：根据method注解上的value封装成的pointcut
 
 candidateAdviceMethod：候选的增强方法
 
-```java
+```
  new InstantiationModelAwarePointcutAdvisorImpl(expressionPointcut, candidateAdviceMethod,
       this, aspectInstanceFactory, declarationOrderInAspect, aspectName);
 //构造函数的逻辑
@@ -157,7 +157,7 @@ this.instantiatedAdvice = instantiateAdvice(this.declaredPointcut);
 
 ### 3.根据收集到的所有Advisor，获取对当前bean可用的Advisor
 
-```java
+```
 //主要是由PointCut的MethodMatcher(判断方法上是否需要增强如@Transactional)和ClassFilter判断整个类是否需要增强（根据通知方法(Advice)的表达式）
 //只要有一个方法增强就会为这个实列创建代理对象，具体哪个方法需要增强则在JdkDynamicAopProxy的invoke方法时具体判断
 List<Advisor> eligibleAdvisors = findAdvisorsThatCanApply(candidateAdvisors, beanClass, beanName);
@@ -175,7 +175,7 @@ MethodMatcher methodMatcher = pc.getMethodMatcher();
 
 ### 4.创建默认的Advisor
 
-```java
+```
 //若存在有@Aspect注解标记的切面就会创建一个默认的Advisor --DefaultPointcutAdvisor,作用是用于参数传递
 extendAdvisors(eligibleAdvisors);
 ```
@@ -186,7 +186,7 @@ extendAdvisors(eligibleAdvisors);
 
 ，加了@Aspect注解按前面的方法排序不变
 
-```java
+```
 if (!eligibleAdvisors.isEmpty()) {
    eligibleAdvisors = sortAdvisors(eligibleAdvisors);
 }
@@ -194,3 +194,86 @@ if (!eligibleAdvisors.isEmpty()) {
 
 ## 二、创建代理bean
 
+### 1.代理对象创建的入口
+
+```
+/**
+ * bean.getClass() 被代理对象的class
+ * beanName：被代理对象beanName
+ * specificInterceptors:收集到的可用的advisor
+ *  new SingletonTargetSource(bean)：targetSource包含了被代理对象
+ *  每一个需要被代理的bean都会创建一个新的 ProxyFactory和JdkDynamicAopProxy
+ * 最终调用被代理对象的方法会调到JdkDynamicAopProxy的invoke()方法
+ */
+Object proxy = createProxy(
+      bean.getClass(), beanName, specificInterceptors, new SingletonTargetSource(bean));
+```
+
+### 2.创建代理工厂，设置proxyFactory的属性
+
+```
+/**
+ * 创建代理工厂
+ */
+ProxyFactory proxyFactory = new ProxyFactory();
+/**
+ * 拷贝AnnotationAwareAspectJAutoCreator的proxyTargetClass 和 exposeProxy 属性
+ * proxyTargetClass：是否开启CGLIB代理 默认false
+ * exposeProxy是否将代理对象放入ThreadLocal中 默认false
+ */
+proxyFactory.copyFrom(this);
+```
+
+### 3.收集全局拦截器和前面封装好的候选Advisor
+
+```
+/**
+ * 根据前面收集到可用的Advisor和自定义的全局Advisor组合成新的Advisor
+ */
+Advisor[] advisors = buildAdvisors(beanName, specificInterceptors);
+/**
+* 收集全局Advisor
+* 需要自定义Advisor
+*/
+Advisor[] commonInterceptors = resolveInterceptorNames();
+/**
+* interceptorNames是AnnotationAwareAspectJAutoProxyCreator中的属性
+* 需要开发者自定义创建
+* 全局拦截的DefaultPointcutAdvisor(methodInterceptor)
+*/
+for (String beanName : this.interceptorNames) {
+if (cbf == null || !cbf.isCurrentlyInCreation(beanName)) {
+Assert.state(bf != null, "BeanFactory required for resolving interceptor names");
+Object next = bf.getBean(beanName);
+advisors.add(this.advisorAdapterRegistry.wrap(next));
+}
+}
+```
+
+### 4.封装属性到到ProxyFactory
+
+```
+//advisor包装到proxyFactory中
+proxyFactory.addAdvisors(advisors);
+//targetSource包装到proxyFactory中 targetSource中包装了被代理bean
+proxyFactory.setTargetSource(targetSource);
+```
+
+### 5.创建代理对象
+
+```
+ proxyFactory.getProxy(getProxyClassLoader());
+ createAopProxy().getProxy(classLoader);
+ //创建JdkDynamicAopProxy
+//设置config.isProxyTargetClass()为true并不一定为CGLIB代理
+  if (config.isOptimize() || config.isProxyTargetClass() || hasNoUserSuppliedProxyInterfaces(config)) {
+       return new JdkDynamicAopProxy(config);
+ }
+ 
+
+ //jdk动态代理创建代理对象
+ JdkDynamicAopProxy.getProxy(){
+  return Proxy.newProxyInstance(classLoader, proxiedInterfaces, this);
+ }
+
+```
