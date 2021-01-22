@@ -12,6 +12,6 @@ public class Test {
 		System.getProperties().put("sun.misc.ProxyGenerator.saveGeneratedFiles", "true");
 		//People proxy = (People) Proxy.newProxyInstance(Test.class.getClassLoader(), new Class<?>[]{People.class}, new Parent(new XiaoWang()));
 		People proxy = (People) new Parent(new XiaoWang()).getProxy();
-		proxy.findFriend();
+		proxy.findFriend("s");
 	}
 }

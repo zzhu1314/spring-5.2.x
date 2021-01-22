@@ -165,7 +165,7 @@ public class PropertySourcesPlaceholderConfigurer extends PlaceholderConfigurerS
 				throw new BeanInitializationException("Could not load properties", ex);
 			}
 		}
-
+        //处理Properties，为属性赋值，最终解析property属性是走PropertySourcesPropertyResolver.resolveRequiredPlaceholders()
 		processProperties(beanFactory, new PropertySourcesPropertyResolver(this.propertySources));
 		this.appliedPropertySources = this.propertySources;
 	}
@@ -183,6 +183,7 @@ public class PropertySourcesPlaceholderConfigurer extends PlaceholderConfigurerS
 		//这是一个匿名对象，@Value的依赖注入和property标签的属性注入会在这里
 		StringValueResolver valueResolver = strVal -> {
 			String resolved = (this.ignoreUnresolvablePlaceholders ?
+					//解析出结果
 					propertyResolver.resolvePlaceholders(strVal) :
 					propertyResolver.resolveRequiredPlaceholders(strVal));
 			if (this.trimValues) {

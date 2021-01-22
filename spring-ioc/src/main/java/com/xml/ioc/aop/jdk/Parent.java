@@ -32,7 +32,7 @@ public class Parent implements InvocationHandler {
 	@Override
 	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 		before();
-		method.invoke(target, args);
+		method.invoke(target, "1");
 		after();
 		return proxy;
 	}

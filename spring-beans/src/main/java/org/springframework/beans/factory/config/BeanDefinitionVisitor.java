@@ -81,6 +81,9 @@ public class BeanDefinitionVisitor {
 		visitFactoryBeanName(beanDefinition);
 		visitFactoryMethodName(beanDefinition);
 		visitScope(beanDefinition);
+		/**
+		 * 判断BeanDefinition中的MutablePropertyValues属性中的propertyValues是否为空
+		 */
 		if (beanDefinition.hasPropertyValues()) {
 			//给property属性福值
 			visitPropertyValues(beanDefinition.getPropertyValues());
@@ -147,6 +150,7 @@ public class BeanDefinitionVisitor {
 		for (PropertyValue pv : pvArray) {
 			//解析占位符${}
 			Object newVal = resolveValue(pv.getValue());
+			//判断value的值是否相等
 			if (!ObjectUtils.nullSafeEquals(newVal, pv.getValue())) {
 				pvs.add(pv.getName(), newVal);
 			}

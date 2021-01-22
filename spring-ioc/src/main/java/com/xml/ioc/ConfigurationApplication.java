@@ -9,12 +9,21 @@ import com.xml.ioc.configuration.ConfigurationClassDemo;
 import com.xml.ioc.configurationclass.A;
 import com.xml.ioc.configurationclass.B;
 //import org.junit.Test;
+import org.springframework.beans.PropertyValue;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+/**
+ * properties属性值解析出来
+ */
 public class ConfigurationApplication {
 	public static void main(String[] args) {
-		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(ConfigurationClassDemo.class);
+	AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(ConfigurationClassDemo.class);
 		System.out.println(applicationContext.getBean(A.class));
 		/*AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(BeanMethodConfiguration.class);
 		BigCat bigCat = applicationContext.getBean(BigCat.class);
@@ -23,7 +32,6 @@ public class ConfigurationApplication {
 		System.out.println("tiger:"+bigCat.getYellowTiger().hashCode());
 		System.out.println(applicationContext.getBean(YellowTiger.class).hashCode());
 */
-
 	}
 
 	//@Test

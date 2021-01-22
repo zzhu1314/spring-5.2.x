@@ -214,14 +214,17 @@ public abstract class PlaceholderConfigurerSupport extends PropertyResourceConfi
 			StringValueResolver valueResolver) {
        //把StringValueResolver传入到BeanDefinitionVisitor
 		BeanDefinitionVisitor visitor = new BeanDefinitionVisitor(valueResolver);
-		//遍历所有的BeanDefinition
+		//遍历所有的BeanDefinition,为BeanDefinition的MutablePropertyValues中的属性PropertyValue属性赋值
 		String[] beanNames = beanFactoryToProcess.getBeanDefinitionNames();
 		for (String curName : beanNames) {
 			// Check that we're not parsing our own bean definition,
 			// to avoid failing on unresolvable placeholders in properties file locations.
 			if (!(curName.equals(this.beanName) && beanFactoryToProcess.equals(this.beanFactory))) {
 				BeanDefinition bd = beanFactoryToProcess.getBeanDefinition(curName);
-				try {//为属性赋值
+				try {
+					/**
+					 * 为属性赋值
+					 */
 					visitor.visitBeanDefinition(bd);
 				}
 				catch (Exception ex) {
@@ -234,7 +237,7 @@ public abstract class PlaceholderConfigurerSupport extends PropertyResourceConfi
 		beanFactoryToProcess.resolveAliases(valueResolver);
 
 		// New in Spring 3.0: resolve placeholders in embedded values such as annotation attributes.
-		// 为beanFactory的embeddedValueResolvers属性解析器加入匿名对象
+		// 为beanFactory的embeddedValueResolvers属性解析器加入匿名对象 ，处理@Value注解
 	/*	StringValueResolver valueResolver = strVal -> {
 			String resolved = (this.ignoreUnresolvablePlaceholders ?
 					propertyResolver.resolvePlaceholders(strVal) :

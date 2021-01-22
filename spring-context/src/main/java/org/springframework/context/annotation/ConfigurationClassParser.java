@@ -482,6 +482,7 @@ class ConfigurationClassParser {
 
 		for (String location : locations) {
 			try {
+				//这个location也可以用${}占位符表示，可以解析
 				String resolvedLocation = this.environment.resolveRequiredPlaceholders(location);
 				//将配置文件封装成Resource对象必须加classpath:
 				Resource resource = this.resourceLoader.getResource(resolvedLocation);

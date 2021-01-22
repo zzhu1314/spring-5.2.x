@@ -88,6 +88,7 @@ public class DefaultAdvisorChainFactory implements AdvisorChainFactory, Serializ
 							// Creating a new object instance in the getInterceptors() method
 							// isn't a problem as we normally cache created chains.
 							for (MethodInterceptor interceptor : interceptors) {
+								//若需要进行方法的参数验证将interceptors包装成InterceptorAndDynamicMethodMatcher，在方法反射调用的时候再次验证是否需要增强
 								interceptorList.add(new InterceptorAndDynamicMethodMatcher(interceptor, mm));
 							}
 						}

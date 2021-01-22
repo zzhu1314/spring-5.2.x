@@ -176,7 +176,7 @@ MethodMatcher methodMatcher = pc.getMethodMatcher();
 ### 4.创建默认的Advisor
 
 ```
-//若存在有@Aspect注解标记的切面就会创建一个默认的Advisor --DefaultPointcutAdvisor,作用是用于参数传递
+//若存在有@Aspect注解标记的切面就会创建一个默认的Advisor --DefaultPointcutAdvisor,advisor的advice是一个ExposeInvocationInterceptor作用是用于参数传递
 extendAdvisors(eligibleAdvisors);
 ```
 
@@ -214,6 +214,7 @@ Object proxy = createProxy(
 ```
 /**
  * 创建代理工厂
+ 
  */
 ProxyFactory proxyFactory = new ProxyFactory();
 /**
@@ -276,4 +277,92 @@ proxyFactory.setTargetSource(targetSource);
   return Proxy.newProxyInstance(classLoader, proxiedInterfaces, this);
  }
 
+```
+
+## 三、被代理方法的调用
+
+**接下来以JDK的动态代理为列,调用被代理方法最终回调用到dkDynamicAopProxy的invoke()方法**
+
+### 1.获取拦截链,用于被代理方法的增强
+
+ 
+* 	根据方法获取方法的拦截器链 advised 就是proxyFactory，
+* 	这里用Object类型接收是因为：
+* 	1.若需要进行方法的参数匹配(MethodMatcher.isRunTime==true) 则返回InterceptorAndDynamicMethodMatcher类型,在**方法反射调用时 再次进行参数匹配**
+* 	2.若直接进行方法匹配,无需进行参数匹配则返回MethodInterceptor
+*   3.若是@Before,@AfterReturning,@AfterThrowing**这类advice实现了advice接口的增强逻辑却未实现MethodInterceptor**，会进行适配成一个MethodInterceptor
+
+```
+
+List<Object> chain = this.advised.getInterceptorsAndDynamicInterceptionAdvice(method, targetClass);
+```
+
+ 如果返回的chain为空，则表明被代理方法无需增强，直接反射调用
+
+### 2.创建方法的增强器
+
+```
+/**
+ * JDK动态代理 创建一个方法的增强器
+ *proxy:生成的代理对象
+ * target：被代理对象
+ * method：接口方法不被代理对象的方法，通过这个method无法获取到被代理方法上的注解 需通过AopUtils.getMostSpecificMethod(method,targetClass)
+ * args：参数
+ * targetClass：被代理对象的Class类型
+ * chain：拦截链，增强链
+ */
+MethodInvocation invocation =
+      new ReflectiveMethodInvocation(proxy, target, method, args, targetClass, chain);
+```
+
+### 3.对被代理方法拦截链调用，进行方法增强
+
+```
+invocation.proceed();
+```
+
+**这个方法对interceptor进行传递调用**
+
+**interceptor的顺序根据前面advisor的顺序一致**
+
+<u>**优先级排序：**</u>
+
+（1）若有@Aspect切面，系统会扩展一个DefaultPointCutAdvisor(ExposeInvocationInterceptor)
+
+ExposeInvocationInterceptor作为一个advice,会将***invocation***放入ThreadLocal中，这个的**优先级最高**
+
+（2）直接实现了advisor接口的bean，这类是自定义Advisor，用于扩展。
+
+（3）由@Aspect注解构成的切面，如@Before，@Around等
+
+
+
+**扩展:解决在方法内调方法代理失效问题**
+
+/**
+ * 代理失效原因:**普通方法的调用(proxy.test())会进JdkDynamic.invoke()的方法,但不会走增强，直接反射调用该方法，方法内部的方法调用直接走的this.zengqiang(),这个this是被代理的对象(目标对象target),而非代理对象，所以第二次不会进JdkDynamic.invoke()方法，无法进行增强**
+ **解决方法：应用代理对象调 zengqiang() 即proxy.zengqiang();**
+ * 方法1 自己注入自己，有循环依赖问题，会在三级缓存中生成代理对象
+ * 方法2  实现ApplicationContentAware或者BeanFactoryAware接口，直接从缓存中getBean();
+ * 3.设置@EnableAutoAspectJProxy的exposeProxy属性为true，调用JdkDynamicAopProxy的invoke方法时会将当前代理对象放入ThreadLocal 中
+ */
+
+```
+public void test(){
+  zengqiang();//这个是需要增强的方法
+}
+```
+
+**Pointcut中MethodMatcher的match方法调用**
+
+  match方法会被调用两次，
+
+  第一次调用是在代理前，若有一个方法匹配则表明advisor匹配这个类，会为这个类创建代理，
+
+ 第二次调用是在代理生成后，调用方法时，会对每个方法进行匹配，若匹配成功，会将advice封装成interceptor，进行拦截器的链式调用。
+
+ 这两次调用的入参method不是同一个，第一次method是被代理类的方法，第二次method是接口的方法。
+
+```
+public boolean matches(Method method, Class<?> targetClass) 
 ```

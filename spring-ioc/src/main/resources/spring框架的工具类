@@ -1,0 +1,5 @@
+1.ObjectUtils 对象工具类
+   (1)判断两个值是否相等  ObjectUtils.nullSafeEquals(value1,value2);
+2.AnnotationUtils 注解工具类 针对类(Class)
+ AnnotatedElementUtils 注解工具类 针对属性(Field,method)
+3.ReflectionUtils 反射工具类

@@ -12,10 +12,11 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
- * 代理失效问题 原因guojie2()不是生成的代理bean调用的，不会走JdkDynamicAopProxy的invoke方法，直接走的this.guojie2()
+ * 代理失效问题 普通方法的调用会进JdkDynamic.invoke()的方法,但不会走增强，
+ * 直接反射调用该方法，方法内部的方法调用直接走的this.guojie2(),这个this是被代理的对象(目标对象),而非代理对象，所以第二次不会进JdkDynamic.invoke()方法，无法进行增强
  * 方法1 自己注入自己，有循环依赖问题，会在三级缓存中生成代理对象
  * 方法2  实现ApplicationContentAware或者BeanFactoryAware接口，直接从缓存中getBean();
- * 设置@EnableAutoAspectJProxy的exposeProxy属性为true，调用JdkDynamicAopProxy的invoke方法时会将当前代理对象放入ThreadLocal 中
+ * 3.设置@EnableAutoAspectJProxy的exposeProxy属性为true，调用JdkDynamicAopProxy的invoke方法时会将当前代理对象放入ThreadLocal 中
  */
 @Component
 public class ProxyDisabledDemo implements ProxyDisableDemoService, ApplicationContextAware, BeanFactoryAware {

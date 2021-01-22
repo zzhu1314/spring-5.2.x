@@ -200,7 +200,8 @@ final class JdkDynamicAopProxy implements AopProxy, InvocationHandler, Serializa
 			 * 	根据方法获取方法的拦截器链 advised 就是proxyFactory
 			 * 	这里用Object类型接收是因为：
 			 * 	1.若需要进行方法的参数匹配(MethodMatcher.isRunTime==true) 则返回InterceptorAndDynamicMethodMatcher类型
-			 * 	2.若值进行方法匹配则返回MethodInterceptor
+			 * 	2.若直接进行方法匹配,无需进行参数匹配则返回MethodInterceptor
+			 * 	若是@Before,@AfterReturning,@AfterThrowing这类实现了advice接口的增强逻辑却未实现MethodInterceptor，会进行适配成一个MethodInterceptor
 			 */
 			List<Object> chain = this.advised.getInterceptorsAndDynamicInterceptionAdvice(method, targetClass);
 
@@ -216,10 +217,19 @@ final class JdkDynamicAopProxy implements AopProxy, InvocationHandler, Serializa
 			}
 			else {
 				// We need to create a method invocation...
-				//JDK动态代理 创建一个方法的增强器
+				/**
+				 * JDK动态代理 创建一个方法的增强器
+				 *proxy:生成的代理对象
+				 * target：被代理对象
+				 * method：接口方法不被代理对象的方法，通过这个method无法获取到被代理方法上的注解 需通过AopUtils.getMostSpecificMethod(method,targetClass)
+				 * args：参数
+				 * targetClass：被代理对象的Class类型
+				 * chain：拦截链，增强链
+				 */
 				MethodInvocation invocation =
 						new ReflectiveMethodInvocation(proxy, target, method, args, targetClass, chain);
 				// Proceed to the joinpoint through the interceptor chain.
+				//通过拦截器链调用，对方法进行增强
 				retVal = invocation.proceed();
 			}
 

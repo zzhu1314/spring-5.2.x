@@ -595,6 +595,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				/*
 				 * 这个方法是spring中最重要的方法，没有之一
 				 * 所以这个方法一定要理解要具体看
+				 *  如果没有propertySourcePlaceHolderConfigurer,注入一个默认的属性解析器 解析@Value注解
 				 * 1、bean实例化过程
 				 * 2、ioc
 				 * 3、注解支持
@@ -925,6 +926,12 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		// Register a default embedded value resolver if no bean post-processor
 		// (such as a PropertyPlaceholderConfigurer bean) registered any before:
 		// at this point, primarily for resolution in annotation attribute values.
+		/**
+		 * 如果没有propertySourcePlaceHolderConfigurer,注入一个默认的属性解析器 解析@Value注解
+		 * getEnvironment()是StandardEnvironment
+		 * 最终解析走PropertySourcesPropertyResolver.resolveRequiredPlaceholders()
+		 */
+
 		if (!beanFactory.hasEmbeddedValueResolver()) {
 			beanFactory.addEmbeddedValueResolver(strVal -> getEnvironment().resolvePlaceholders(strVal));
 		}

@@ -149,7 +149,7 @@ public class PropertyPlaceholderHelper {
 				//递归获取防止${${}}情况出现
 				placeholder = parseStringValue(placeholder, placeholderResolver, visitedPlaceholders);
 				// Now obtain the value for the fully resolved key...
-				//解析占位符
+				//解析占位符 默认情况下这里走PropertySourcesPropertyResolver的getProperty()方法
 				String propVal = placeholderResolver.resolvePlaceholder(placeholder);
 				if (propVal == null && this.valueSeparator != null) {
 					int separatorIndex = placeholder.indexOf(this.valueSeparator);

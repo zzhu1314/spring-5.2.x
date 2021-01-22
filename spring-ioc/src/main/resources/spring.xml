@@ -15,12 +15,12 @@
 	<!--    <bean id ="student1" class="com.xml.ioc.bean.Student"/>-->
 	<!--	<bean class="com.xml.ioc.bean.Student" parent="student1" depends-on="student1"/>-->
 	<!--自定义标签 -->
-	<context:component-scan base-package="com.xml.ioc" use-default-filters="true"/>
+<!--	<context:component-scan base-package="com.xml.ioc" use-default-filters="true"/>-->
 	<!--aop也是自定义标签解析 将AnnotationAwareAspectJAutoProxyCreator注册成BeanDefinition-->
 	<aop:aspectj-autoproxy/>
-<!--
+
 	<context:property-placeholder location="classpath:application.properties"/>
--->
+
 	<!--	<bean id="student" class="com.xml.ioc.bean.Student"/>-->
 	<!--
 		非静态方法实列化
@@ -31,11 +31,11 @@
 	-->
 	<!--	<bean class="com.xml.ioc.bean.Dog" factory-method="student"/>-->
 	<!--	构造函数@Autowired实列化-->
-	<bean name="dog" class="com.xml.ioc.bean.Dog"  />
+	<!--<bean name="dog" class="com.xml.ioc.bean.Dog"  />
 	<bean name="student" class="com.xml.ioc.bean.Student"/>
 	<bean name="cat" class="com.xml.ioc.scan.Cat"/>
-    <!--bean的销毁-->
-	<bean name="destoryDemo" class="com.xml.ioc.dosposablebean.DisposableBeanDemo" destroy-method="xmlDestoryBean"/>
+    &lt;!&ndash;bean的销毁&ndash;&gt;
+	<bean name="destoryDemo" class="com.xml.ioc.dosposablebean.DisposableBeanDemo" destroy-method="xmlDestoryBean"/>-->
 	<!--bean的属性注入-->
 	<bean name="propertiesBean" class="com.xml.ioc.properties.PropertiesBeanDemo">
 		<property name="name" value="${zz.name}"/>
