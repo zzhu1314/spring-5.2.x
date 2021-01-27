@@ -239,9 +239,11 @@ public abstract class TransactionSynchronizationManager {
 		if (map == null) {
 			return null;
 		}
+		//移除map中的ConnectionHolder
 		Object value = map.remove(actualKey);
 		// Remove entire ThreadLocal if empty...
 		if (map.isEmpty()) {
+			//移除ThreadLocal中的map
 			resources.remove();
 		}
 		// Transparently suppress a ResourceHolder that was marked as void...

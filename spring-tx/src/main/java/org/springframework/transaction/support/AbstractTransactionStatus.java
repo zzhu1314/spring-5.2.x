@@ -137,6 +137,9 @@ public abstract class AbstractTransactionStatus implements TransactionStatus {
 	 * if the underlying transaction does not support savepoints
 	 */
 	public void createAndHoldSavepoint() throws TransactionException {
+		/**
+		 * 获取到DataSourceTransactionObject对象
+		 */
 		setSavepoint(getSavepointManager().createSavepoint());
 	}
 

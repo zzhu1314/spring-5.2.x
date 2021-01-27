@@ -139,6 +139,10 @@ public class RuleBasedTransactionAttribute extends DefaultTransactionAttribute i
 
 		if (this.rollbackRules != null) {
 			for (RollbackRuleAttribute rule : this.rollbackRules) {
+				/**
+				 * getDepth()递归判断当前异常（以及异常的父类）的类型是否为与rollbackRules中的异常的名字相同
+				 *
+				 */
 				int depth = rule.getDepth(ex);
 				if (depth >= 0 && depth < deepest) {
 					deepest = depth;
@@ -154,6 +158,10 @@ public class RuleBasedTransactionAttribute extends DefaultTransactionAttribute i
 		// User superclass behavior (rollback on unchecked) if no rule matches.
 		if (winner == null) {
 			logger.trace("No relevant rollback rule found: applying default rules");
+			/**
+			 * 若上面校验未通过
+			 * 则判断当前异常类型是否为RuntimeException或者Erro类型
+			 */
 			return super.rollbackOn(ex);
 		}
 

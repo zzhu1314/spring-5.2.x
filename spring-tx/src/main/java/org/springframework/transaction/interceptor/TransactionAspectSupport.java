@@ -367,18 +367,23 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 			 * ptm：事务管理器 管理了数据源
 			 * txAttr：事务属性 @Transaction注解的属性
 			 * joinpointIdentification 连接点 方法名
+			 * 将DefaultStatus封装到TransactionInfo对象
 			 */
-
 			TransactionInfo txInfo = createTransactionIfNecessary(ptm, txAttr, joinpointIdentification);
 
 			Object retVal;
 			try {
 				// This is an around advice: Invoke the next interceptor in the chain.
 				// This will normally result in a target object being invoked.
+				/**
+				 * 调用被代理方法
+				 * 	进行链式调用
+				 */
 				retVal = invocation.proceedWithInvocation();
 			}
 			catch (Throwable ex) {
 				// target invocation exception
+				//事务的回滚
 				completeTransactionAfterThrowing(txInfo, ex);
 				throw ex;
 			}
@@ -393,7 +398,7 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 					retVal = VavrDelegate.evaluateTryFailure(retVal, txAttr, status);
 				}
 			}
-
+            //事务的提交
 			commitTransactionAfterReturning(txInfo);
 			return retVal;
 		}
@@ -581,7 +586,14 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 				}
 			};
 		}
-        //事务状态
+		/**
+		 *事务状态
+		 * DefaultTransactionStatus对象的属性解析
+		 * transaction ：DataSourceTransactionObejct（每一次都是新的new）  -->封装了ConnectionHolder对象-->CH封装了Connection对象，只要在同一个事务ConnectionHolder就是同一个
+		 * newTransaction：判断是否是一个新的事务  是由当newTransaction==true，才会进行提交和回滚
+		 * newSynchronization：是否是新的Synchronization，Synchronization是ThradLocal中装了TransactionSynchronization对象的容器，只有当newSynchronization==true，才能改变当前事务状态的属性（TransactionSynchronizationManager中的）
+		 * suspendedResources：挂起的事务
+		 */
 		TransactionStatus status = null;
 		if (txAttr != null) {
 			if (tm != null) {
@@ -645,6 +657,9 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 			if (logger.isTraceEnabled()) {
 				logger.trace("Completing transaction for [" + txInfo.getJoinpointIdentification() + "]");
 			}
+			/**
+			 * txInfo.getTransactionManager()  DatSourceTransactionManager
+			 */
 			txInfo.getTransactionManager().commit(txInfo.getTransactionStatus());
 		}
 	}
@@ -661,6 +676,11 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 				logger.trace("Completing transaction for [" + txInfo.getJoinpointIdentification() +
 						"] after exception: " + ex);
 			}
+			/**
+			 * 进行异类型的判断
+			 * 所以当异常类型不是一个RuntimeException或者Error时也有可能事务不会滚
+			 * 如IoException
+			 */
 			if (txInfo.transactionAttribute != null && txInfo.transactionAttribute.rollbackOn(ex)) {
 				try {
 					txInfo.getTransactionManager().rollback(txInfo.getTransactionStatus());

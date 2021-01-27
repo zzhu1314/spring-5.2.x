@@ -376,6 +376,11 @@ public class DataSourceTransactionManager extends AbstractPlatformTransactionMan
 
 		// Remove the connection holder from the thread, if exposed.
 		if (txObject.isNewConnectionHolder()) {
+			/**
+			 * 只有在创建new出来的ConnectionHolder， newConnectionHolder才能与ture 还是一个新事务时
+			 * 将resource解绑
+			 */
+
 			TransactionSynchronizationManager.unbindResource(obtainDataSource());
 		}
 

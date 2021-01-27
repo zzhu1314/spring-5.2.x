@@ -184,6 +184,7 @@ public class ConnectionHolder extends ResourceHolderSupport {
 	 */
 	public Savepoint createSavepoint() throws SQLException {
 		this.savepointCounter++;
+		//调用Connection的api创建回滚点
 		return getConnection().setSavepoint(SAVEPOINT_NAME_PREFIX + this.savepointCounter);
 	}
 
