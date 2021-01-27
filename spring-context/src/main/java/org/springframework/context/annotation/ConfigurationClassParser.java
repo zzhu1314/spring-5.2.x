@@ -639,6 +639,7 @@ class ConfigurationClassParser {
 					else {
 						// Candidate class not an ImportSelector or ImportBeanDefinitionRegistrar ->
 						// process it as an @Configuration class
+						//为@Import注入进来的类，存入父类的(被谁@Import的)metadata信息，建立映射关系，在后面postProcessor时为实现了ImportAware接口的bean注入父类的metada信息
 						this.importStack.registerImport(
 								currentSourceClass.getMetadata(), candidate.getMetadata().getClassName());
 						//递归调用处理Import(A.Class)中A类的属性，candidate.asConfigClass(configClass)会将导入A的类加入ImportedBy集合中

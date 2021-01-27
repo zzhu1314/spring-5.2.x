@@ -90,6 +90,11 @@ public class AnnotationTransactionAttributeSource extends AbstractFallbackTransa
 	 * (typically used with AspectJ class weaving)
 	 */
 	public AnnotationTransactionAttributeSource(boolean publicMethodsOnly) {
+		/**
+		 * SpringTransactionAnnotationParser  解析Spring的@Transaction注解（优先级最高）
+		 * JtaTransactionAnnotationParser：解析Hibernate的@Transaction注解
+		 *
+		 */
 		this.publicMethodsOnly = publicMethodsOnly;
 		if (jta12Present || ejb3Present) {
 			this.annotationParsers = new LinkedHashSet<>(4);
@@ -168,6 +173,11 @@ public class AnnotationTransactionAttributeSource extends AbstractFallbackTransa
 	 * <p>Can be overridden to support custom annotations that carry transaction metadata.
 	 * @param element the annotated method or class
 	 * @return the configured transaction attribute, or {@code null} if none was found
+	 */
+	/**
+	 * 实际上就是调用AnnotationTransactionAttibuteSource的 SpringTransactionAnnotationPraser解析器
+	 * @param element
+	 * @return
 	 */
 	@Nullable
 	protected TransactionAttribute determineTransactionAttribute(AnnotatedElement element) {

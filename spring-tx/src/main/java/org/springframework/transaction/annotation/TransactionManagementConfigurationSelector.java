@@ -42,9 +42,17 @@ public class TransactionManagementConfigurationSelector extends AdviceModeImport
 	 * {@code AspectJ(Jta)TransactionManagementConfiguration} for {@code PROXY}
 	 * and {@code ASPECTJ} values of {@link EnableTransactionManagement#mode()},
 	 * respectively.
+	 *
 	 */
+
 	@Override
 	protected String[] selectImports(AdviceMode adviceMode) {
+		/**
+		 * PROXY 由父类的ImnportAware将导入类的AnnotationMetada信息获取
+		 * PRXOXY 是自定义Advisor实现事务切面  ASPECTJ 加上@AspectJ注解实现事务切面
+		 * AutoProxyRegistrar：开启动态代理的入口 InfrastructureAdvisorAutoProxyCreator，真如注入时会有优先级确认 如果有AnnotationAwareAspectJProxyAutoCreator,会注册这个，事务的不会注入
+		 * ProxyTransactionManagementConfiguration 注入事务的Advisor
+		 */
 		switch (adviceMode) {
 			case PROXY:
 				return new String[] {AutoProxyRegistrar.class.getName(),

@@ -136,6 +136,7 @@ public abstract class TransactionSynchronizationManager {
 	 */
 	@Nullable
 	public static Object getResource(Object key) {
+		//数据源DataSource作为Key
 		Object actualKey = TransactionSynchronizationUtils.unwrapResourceIfNecessary(key);
 		Object value = doGetResource(actualKey);
 		if (value != null && logger.isTraceEnabled()) {
@@ -175,14 +176,17 @@ public abstract class TransactionSynchronizationManager {
 	 * @see ResourceTransactionManager#getResourceFactory()
 	 */
 	public static void bindResource(Object key, Object value) throws IllegalStateException {
+		//DataSource作为key
 		Object actualKey = TransactionSynchronizationUtils.unwrapResourceIfNecessary(key);
 		Assert.notNull(value, "Value must not be null");
 		Map<Object, Object> map = resources.get();
 		// set ThreadLocal Map if none found
 		if (map == null) {
 			map = new HashMap<>();
+			//将map放入ThreadLocal
 			resources.set(map);
 		}
+		//value作为value
 		Object oldValue = map.put(actualKey, value);
 		// Transparently suppress a ResourceHolder that was marked as void...
 		if (oldValue instanceof ResourceHolder && ((ResourceHolder) oldValue).isVoid()) {

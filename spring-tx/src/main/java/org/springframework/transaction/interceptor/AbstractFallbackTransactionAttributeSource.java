@@ -86,20 +86,25 @@ public abstract class AbstractFallbackTransactionAttributeSource implements Tran
 	 * @param targetClass the target class for this invocation (may be {@code null})
 	 * @return a TransactionAttribute for this method, or {@code null} if the method
 	 * is not transactional
+	 * JDK动态代理下调用的method是接口方法 不是真的方法
 	 */
 	@Override
 	@Nullable
 	public TransactionAttribute getTransactionAttribute(Method method, @Nullable Class<?> targetClass) {
+		//如果类是Object
 		if (method.getDeclaringClass() == Object.class) {
 			return null;
 		}
 
 		// First, see if we have a cached value.
+		//根据方法获取缓存的key key是一个MethodClassKey对象 重写了hashCode和equals方法
 		Object cacheKey = getCacheKey(method, targetClass);
+		//获取缓存中根据@Transaction注解封装好的事务属性
 		TransactionAttribute cached = this.attributeCache.get(cacheKey);
 		if (cached != null) {
 			// Value will either be canonical value indicating there is no transaction attribute,
 			// or an actual transaction attribute.
+			//ruo方法上没有@Transaction注解就会封装成一个空的DefaultTransactionAttribute
 			if (cached == NULL_TRANSACTION_ATTRIBUTE) {
 				return null;
 			}
@@ -109,19 +114,24 @@ public abstract class AbstractFallbackTransactionAttributeSource implements Tran
 		}
 		else {
 			// We need to work it out.
+			//如果缓存中没有 根据@Transaction获取属性，并封装成RuleBasedTransactionAttribute
 			TransactionAttribute txAttr = computeTransactionAttribute(method, targetClass);
 			// Put it in the cache.
 			if (txAttr == null) {
+				//放入一个空的DefaultTransactionAttribute进缓存
 				this.attributeCache.put(cacheKey, NULL_TRANSACTION_ATTRIBUTE);
 			}
 			else {
+				//获取method的方法名，可能是被代理方法，可能是接口方法
 				String methodIdentification = ClassUtils.getQualifiedMethodName(method, targetClass);
 				if (txAttr instanceof DefaultTransactionAttribute) {
+					//将TransactionAttribute的Descriptor设置为方法名
 					((DefaultTransactionAttribute) txAttr).setDescriptor(methodIdentification);
 				}
 				if (logger.isTraceEnabled()) {
 					logger.trace("Adding transactional method '" + methodIdentification + "' with attribute: " + txAttr);
 				}
+				//放入缓存
 				this.attributeCache.put(cacheKey, txAttr);
 			}
 			return txAttr;
@@ -150,26 +160,33 @@ public abstract class AbstractFallbackTransactionAttributeSource implements Tran
 	@Nullable
 	protected TransactionAttribute computeTransactionAttribute(Method method, @Nullable Class<?> targetClass) {
 		// Don't allow no-public methods as required.
+		//如果方法是一个私有方法 ，不走事务切面
 		if (allowPublicMethodsOnly() && !Modifier.isPublic(method.getModifiers())) {
 			return null;
 		}
 
 		// The method may be on an interface, but we need attributes from the target class.
 		// If the target class is null, the method will be unchanged.
+		/**
+		 * 	获取真正的被代理方法
+		 * 	因为如果是jdk动态代理 method是一个接口方法
+		 */
 		Method specificMethod = AopUtils.getMostSpecificMethod(method, targetClass);
 
 		// First try is the method in the target class.
+		//封装方法上@Transaction的属性
 		TransactionAttribute txAttr = findTransactionAttribute(specificMethod);
 		if (txAttr != null) {
 			return txAttr;
 		}
 
 		// Second try is the transaction attribute on the target class.
+		//若方法上没有 则获取类上的@Tranaction属性
 		txAttr = findTransactionAttribute(specificMethod.getDeclaringClass());
 		if (txAttr != null && ClassUtils.isUserLevelMethod(method)) {
 			return txAttr;
 		}
-
+         //在jdk动态代理下method是接口方法 判断接口方法上是否有@Transaction注解
 		if (specificMethod != method) {
 			// Fallback is to look at the original method.
 			txAttr = findTransactionAttribute(method);
@@ -177,6 +194,7 @@ public abstract class AbstractFallbackTransactionAttributeSource implements Tran
 				return txAttr;
 			}
 			// Last fallback is the class of the original method.
+			//在jdk动态代理下判断接口上是否有@Transaction注解
 			txAttr = findTransactionAttribute(method.getDeclaringClass());
 			if (txAttr != null && ClassUtils.isUserLevelMethod(method)) {
 				return txAttr;

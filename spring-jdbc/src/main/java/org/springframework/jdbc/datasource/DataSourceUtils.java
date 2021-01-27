@@ -185,6 +185,7 @@ public abstract class DataSourceUtils {
 				if (debugEnabled) {
 					logger.debug("Setting JDBC Connection [" + con + "] read-only");
 				}
+				//设置只读
 				con.setReadOnly(true);
 			}
 			catch (SQLException | RuntimeException ex) {
@@ -203,14 +204,17 @@ public abstract class DataSourceUtils {
 
 		// Apply specific isolation level, if any.
 		Integer previousIsolationLevel = null;
+		//若隔离级别不是默认的隔离级别，
 		if (definition != null && definition.getIsolationLevel() != TransactionDefinition.ISOLATION_DEFAULT) {
 			if (debugEnabled) {
 				logger.debug("Changing isolation level of JDBC Connection [" + con + "] to " +
 						definition.getIsolationLevel());
 			}
 			int currentIsolation = con.getTransactionIsolation();
+			//若当前的隔离级别与TransactionAttribute的隔离级别不一致
 			if (currentIsolation != definition.getIsolationLevel()) {
 				previousIsolationLevel = currentIsolation;
+				//设connection的隔离级别
 				con.setTransactionIsolation(definition.getIsolationLevel());
 			}
 		}

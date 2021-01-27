@@ -448,6 +448,9 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 	}
 
 
+	/**
+	 * 为实现了ImportAware接口的类注入父类(被谁导入)的AnnotationMetadata信息
+	 */
 	private static class ImportAwareBeanPostProcessor extends InstantiationAwareBeanPostProcessorAdapter {
 
 		private final BeanFactory beanFactory;
@@ -466,6 +469,9 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 			return pvs;
 		}
 
+		/**
+		 * 为实现了ImportAware接口的类注入父类(被谁导入)的AnnotationMetadata信息
+		 */
 		@Override
 		public Object postProcessBeforeInitialization(Object bean, String beanName) {
 			if (bean instanceof ImportAware) {

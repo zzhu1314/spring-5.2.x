@@ -331,10 +331,13 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 			final InvocationCallback invocation) throws Throwable {
 
 		// If the transaction attribute is null, the method is non-transactional.
+		//获取事务属性管理器，里面有TransactionAttribute的缓存
 		TransactionAttributeSource tas = getTransactionAttributeSource();
+		//获取缓存中的TransactionAttribute
 		final TransactionAttribute txAttr = (tas != null ? tas.getTransactionAttribute(method, targetClass) : null);
+		//获取事务管理器DataSourceTransactionManager 里面管理了DataSource数据源对象
 		final TransactionManager tm = determineTransactionManager(txAttr);
-
+         //响应式事务编程
 		if (this.reactiveAdapterRegistry != null && tm instanceof ReactiveTransactionManager) {
 			ReactiveTransactionSupport txSupport = this.transactionSupportCache.computeIfAbsent(method, key -> {
 				if (KotlinDetector.isKotlinType(method.getDeclaringClass()) && KotlinDelegate.isSuspend(method)) {
@@ -352,12 +355,20 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 			return txSupport.invokeWithinTransaction(
 					method, targetClass, invocation, txAttr, (ReactiveTransactionManager) tm);
 		}
-
+        //将DataSourceTransactionManager强转成PlatformTransactionManager
 		PlatformTransactionManager ptm = asPlatformTransactionManager(tm);
+		//获取连接点  即方法名 从Transaction的descriptor中获取
 		final String joinpointIdentification = methodIdentification(method, targetClass, txAttr);
 
 		if (txAttr == null || !(ptm instanceof CallbackPreferringPlatformTransactionManager)) {
 			// Standard transaction demarcation with getTransaction and commit/rollback calls.
+			/**
+			 * 创建事务
+			 * ptm：事务管理器 管理了数据源
+			 * txAttr：事务属性 @Transaction注解的属性
+			 * joinpointIdentification 连接点 方法名
+			 */
+
 			TransactionInfo txInfo = createTransactionIfNecessary(ptm, txAttr, joinpointIdentification);
 
 			Object retVal;
@@ -479,7 +490,9 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 			if (defaultTransactionManager == null) {
 				defaultTransactionManager = this.transactionManagerCache.get(DEFAULT_TRANSACTION_MANAGER_KEY);
 				if (defaultTransactionManager == null) {
+					//直接从容器中获取
 					defaultTransactionManager = this.beanFactory.getBean(TransactionManager.class);
+					//获取到后放入缓存
 					this.transactionManagerCache.putIfAbsent(
 							DEFAULT_TRANSACTION_MANAGER_KEY, defaultTransactionManager);
 				}
@@ -559,6 +572,7 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 			@Nullable TransactionAttribute txAttr, final String joinpointIdentification) {
 
 		// If no name specified, apply method identification as transaction name.
+		//设置方法名为事务名
 		if (txAttr != null && txAttr.getName() == null) {
 			txAttr = new DelegatingTransactionAttribute(txAttr) {
 				@Override
@@ -567,10 +581,11 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 				}
 			};
 		}
-
+        //事务状态
 		TransactionStatus status = null;
 		if (txAttr != null) {
 			if (tm != null) {
+				//获取事务状态,开启事务
 				status = tm.getTransaction(txAttr);
 			}
 			else {

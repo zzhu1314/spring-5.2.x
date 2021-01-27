@@ -34,11 +34,19 @@ import org.springframework.transaction.interceptor.TransactionInterceptor;
  * @since 3.1
  * @see EnableTransactionManagement
  * @see TransactionManagementConfigurationSelector
+ * proxyBeanMethods 关掉@Configuration的CGIB代理
  */
 @Configuration(proxyBeanMethods = false)
 @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
-public class ProxyTransactionManagementConfiguration extends AbstractTransactionManagementConfiguration {
+public class
+ProxyTransactionManagementConfiguration extends AbstractTransactionManagementConfiguration {
 
+	/**
+	 * 定义事务切面
+	 * @param transactionAttributeSource
+	 * @param transactionInterceptor
+	 * @return
+	 */
 	@Bean(name = TransactionManagementConfigUtils.TRANSACTION_ADVISOR_BEAN_NAME)
 	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 	public BeanFactoryTransactionAttributeSourceAdvisor transactionAdvisor(
@@ -47,22 +55,37 @@ public class ProxyTransactionManagementConfiguration extends AbstractTransaction
 		BeanFactoryTransactionAttributeSourceAdvisor advisor = new BeanFactoryTransactionAttributeSourceAdvisor();
 		advisor.setTransactionAttributeSource(transactionAttributeSource);
 		advisor.setAdvice(transactionInterceptor);
+		//enableTx 设置排序 也是从导入类的AnnotationMetada中获取
 		if (this.enableTx != null) {
 			advisor.setOrder(this.enableTx.<Integer>getNumber("order"));
 		}
 		return advisor;
 	}
 
+	/**
+	 * 定义事务属性管理器，里面初始换了SpringTransactionAttributePraser事务属性解析器用来解析@Transaction注解
+	 * TransactionAttributeSource将解析好的TransactionAttribute放入缓存
+	 *   @Transaction在Spring和Hibernate都会有
+	 * @return
+	 */
 	@Bean
 	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 	public TransactionAttributeSource transactionAttributeSource() {
 		return new AnnotationTransactionAttributeSource();
 	}
 
+	/**
+	 * 设置事务切面的MethodInterceprtor
+	 * @param transactionAttributeSource
+	 * @return
+	 */
 	@Bean
 	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 	public TransactionInterceptor transactionInterceptor(TransactionAttributeSource transactionAttributeSource) {
 		TransactionInterceptor interceptor = new TransactionInterceptor();
+		/**
+		 * 注入transactionAttributeSource进行方法的match
+		 */
 		interceptor.setTransactionAttributeSource(transactionAttributeSource);
 		if (this.txManager != null) {
 			interceptor.setTransactionManager(this.txManager);

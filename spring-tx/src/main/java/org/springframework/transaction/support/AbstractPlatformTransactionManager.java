@@ -337,18 +337,31 @@ public abstract class AbstractPlatformTransactionManager implements PlatformTran
 	 * @see #isExistingTransaction
 	 * @see #doBegin
 	 */
+
 	@Override
 	public final TransactionStatus getTransaction(@Nullable TransactionDefinition definition)
 			throws TransactionException {
 
+		/**
+		 * definition就是TransactionAttribute
+		 */
 		// Use defaults if no transaction definition given.
 		TransactionDefinition def = (definition != null ? definition : TransactionDefinition.withDefaults());
-
+		/**
+		 * 获取数据源事务对象
+		 * DataSourceTransactionObject  里面封装了一个ConnectionHolder  -->ConnectionHolder关了Connection连接对象
+		 */
 		Object transaction = doGetTransaction();
 		boolean debugEnabled = logger.isDebugEnabled();
-
+        //如果是第一次进来这里为空，不会进
 		if (isExistingTransaction(transaction)) {
 			// Existing transaction found -> check propagation behavior to find out how to behave.
+			/**
+			 * 如果当前线程存在事务 即从ThradLocal中能获取到ConnectionHolder
+			 * 且ConnectionHolder为活跃状态
+			 * def：TransactionAttribute 事务属性
+			 * transaction：DataSourceTransactionObject  数据源事务对象
+			 */
 			return handleExistingTransaction(def, transaction, debugEnabled);
 		}
 
@@ -358,6 +371,7 @@ public abstract class AbstractPlatformTransactionManager implements PlatformTran
 		}
 
 		// No existing transaction found -> check propagation behavior to find out how to proceed.
+		//进来进必须从ThreadLocal中获取到事务 否则报错  当前ThreadLocal必须有事务
 		if (def.getPropagationBehavior() == TransactionDefinition.PROPAGATION_MANDATORY) {
 			throw new IllegalTransactionStateException(
 					"No existing transaction found for transaction marked with propagation 'mandatory'");
@@ -365,11 +379,18 @@ public abstract class AbstractPlatformTransactionManager implements PlatformTran
 		else if (def.getPropagationBehavior() == TransactionDefinition.PROPAGATION_REQUIRED ||
 				def.getPropagationBehavior() == TransactionDefinition.PROPAGATION_REQUIRES_NEW ||
 				def.getPropagationBehavior() == TransactionDefinition.PROPAGATION_NESTED) {
+			//挂起当前事务，这里一般为null
 			SuspendedResourcesHolder suspendedResources = suspend(null);
 			if (debugEnabled) {
 				logger.debug("Creating new transaction with name [" + def.getName() + "]: " + def);
 			}
 			try {
+				/**
+				 * 	创建事务
+				 *def：TransactionDefinition 即TransactionAttribute 事务属性
+				 * transaction：  DataSourceTransactionObeject 数据源事务对象 封装了 ConnectionHolder-->Connection
+				 * suspendedResources： 挂起的事务  这里一般为null
+				 */
 				return startTransaction(def, transaction, debugEnabled, suspendedResources);
 			}
 			catch (RuntimeException | Error ex) {
@@ -393,11 +414,30 @@ public abstract class AbstractPlatformTransactionManager implements PlatformTran
 	 */
 	private TransactionStatus startTransaction(TransactionDefinition definition, Object transaction,
 			boolean debugEnabled, @Nullable SuspendedResourcesHolder suspendedResources) {
-
+       //默认不等于 为true
 		boolean newSynchronization = (getTransactionSynchronization() != SYNCHRONIZATION_NEVER);
+		/**
+		 * 创建TransactionStatus  事务状态
+		 * 注意 newTransaction 为true 为一个新的事务，判读事务提交或回滚时 这个必须为true
+		 * 只有当是一个新事务 事务才会提交或回滚
+		 * definition 事务属性
+		 * transaction 数据源事务对象  DataSourceTransactionObject管理Connection
+		 * newTransaction  是否为一个新事务
+		 */
 		DefaultTransactionStatus status = newTransactionStatus(
 				definition, transaction, true, newSynchronization, debugEnabled, suspendedResources);
+		/**
+		 * 真正开启事务
+		 * 1.根据dataSource获取Connection，创建一个新的ConnectionHolder，将ConnectionHolder放入DataSourceTransactionObject中，ConnectionHolder作为事务传播的根本
+		 * 2.设置Connection一系列属性  如只读，隔离级别
+		 * 3.将ConnectionHolder放入ThreadLocal中
+		 */
 		doBegin(transaction, definition);
+
+		/**
+		 * 开启事务后
+		 * 	在ThradLocal中设置事务的一系列属性，改变事务的状态
+		 */
 		prepareSynchronization(status, definition);
 		return status;
 	}
@@ -408,27 +448,29 @@ public abstract class AbstractPlatformTransactionManager implements PlatformTran
 	private TransactionStatus handleExistingTransaction(
 			TransactionDefinition definition, Object transaction, boolean debugEnabled)
 			throws TransactionException {
-
+        //PROPAGATION_NEVER  当前环境有事务 直接报错
 		if (definition.getPropagationBehavior() == TransactionDefinition.PROPAGATION_NEVER) {
 			throw new IllegalTransactionStateException(
 					"Existing transaction found for transaction marked with propagation 'never'");
 		}
-
+        // PROPAGATION_NOT_SUPPORTED 若当前环境有事务 将事务挂起
 		if (definition.getPropagationBehavior() == TransactionDefinition.PROPAGATION_NOT_SUPPORTED) {
 			if (debugEnabled) {
 				logger.debug("Suspending current transaction");
 			}
+			//挂起
 			Object suspendedResources = suspend(transaction);
 			boolean newSynchronization = (getTransactionSynchronization() == SYNCHRONIZATION_ALWAYS);
 			return prepareTransactionStatus(
 					definition, null, false, newSynchronization, debugEnabled, suspendedResources);
 		}
-
+        //PROPAGATION_REQUIRES_NEW 若当前环境有事务，将原来的事务 挂起 并创建新的事务
 		if (definition.getPropagationBehavior() == TransactionDefinition.PROPAGATION_REQUIRES_NEW) {
 			if (debugEnabled) {
 				logger.debug("Suspending current transaction, creating new transaction with name [" +
 						definition.getName() + "]");
 			}
+			//挂起原来的事务
 			SuspendedResourcesHolder suspendedResources = suspend(transaction);
 			try {
 				return startTransaction(definition, transaction, debugEnabled, suspendedResources);
@@ -527,12 +569,17 @@ public abstract class AbstractPlatformTransactionManager implements PlatformTran
 	 */
 	protected void prepareSynchronization(DefaultTransactionStatus status, TransactionDefinition definition) {
 		if (status.isNewSynchronization()) {
+			//设置是否有事务，即DataSourceTransactionObject不为null
 			TransactionSynchronizationManager.setActualTransactionActive(status.hasTransaction());
+			//设置事务的隔离级别
 			TransactionSynchronizationManager.setCurrentTransactionIsolationLevel(
 					definition.getIsolationLevel() != TransactionDefinition.ISOLATION_DEFAULT ?
 							definition.getIsolationLevel() : null);
+			//设置当前事务的只读属性
 			TransactionSynchronizationManager.setCurrentTransactionReadOnly(definition.isReadOnly());
+			//设置当前事务的名字，即TransactionAttribute的name  方法名
 			TransactionSynchronizationManager.setCurrentTransactionName(definition.getName());
+			//初始换synchronizations，可在synchronizations容器中注册TransactionSynchronization用于一些业务处理如afterCommit，beforeCommit
 			TransactionSynchronizationManager.initSynchronization();
 		}
 	}

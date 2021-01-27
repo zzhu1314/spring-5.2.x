@@ -238,8 +238,10 @@ public class DataSourceTransactionManager extends AbstractPlatformTransactionMan
 	protected Object doGetTransaction() {
 		DataSourceTransactionObject txObject = new DataSourceTransactionObject();
 		txObject.setSavepointAllowed(isNestedTransactionAllowed());
+		//从ThreadLocal中获取ConnectionHolder对象，第一次是空
 		ConnectionHolder conHolder =
 				(ConnectionHolder) TransactionSynchronizationManager.getResource(obtainDataSource());
+		//封装进DataSourceTransactionObject对象
 		txObject.setConnectionHolder(conHolder, false);
 		return txObject;
 	}
@@ -258,18 +260,25 @@ public class DataSourceTransactionManager extends AbstractPlatformTransactionMan
 		try {
 			if (!txObject.hasConnectionHolder() ||
 					txObject.getConnectionHolder().isSynchronizedWithTransaction()) {
+				//根据数据源DataSource获取Connection
 				Connection newCon = obtainDataSource().getConnection();
 				if (logger.isDebugEnabled()) {
 					logger.debug("Acquired Connection [" + newCon + "] for JDBC transaction");
 				}
+				/**
+				 * 创建一个ConnectionHolder并封装入DataSourceTransactionObject
+				 设置ConnectionHolder为一个新的ConnectionHolder 设置ConnectionHolder==true
+				 */
 				txObject.setConnectionHolder(new ConnectionHolder(newCon), true);
 			}
-
+            //设置synchronizedWithTransaction为true
 			txObject.getConnectionHolder().setSynchronizedWithTransaction(true);
 			con = txObject.getConnectionHolder().getConnection();
-
+			//设置Connection的只读属性和隔离级别
 			Integer previousIsolationLevel = DataSourceUtils.prepareConnectionForTransaction(con, definition);
+			//设置先前的隔离级别
 			txObject.setPreviousIsolationLevel(previousIsolationLevel);
+			//设置只读属性
 			txObject.setReadOnly(definition.isReadOnly());
 
 			// Switch to manual commit if necessary. This is very expensive in some JDBC drivers,
@@ -280,10 +289,12 @@ public class DataSourceTransactionManager extends AbstractPlatformTransactionMan
 				if (logger.isDebugEnabled()) {
 					logger.debug("Switching JDBC Connection [" + con + "] to manual commit");
 				}
+				//关闭自动提交，若想实现同一个事务 必须关闭自动提交
 				con.setAutoCommit(false);
 			}
-
+			//若是只读 设置数据库的只读属性SET TRANSACTION READ ONLY
 			prepareTransactionalConnection(con, definition);
+			//设置ConnectionHolder为活跃状态
 			txObject.getConnectionHolder().setTransactionActive(true);
 
 			int timeout = determineTimeout(definition);
@@ -293,6 +304,7 @@ public class DataSourceTransactionManager extends AbstractPlatformTransactionMan
 
 			// Bind the connection holder to the thread.
 			if (txObject.isNewConnectionHolder()) {
+				//如果是一个新的ConnectionHolder，将ConnectionHolder放入ThradLocal中
 				TransactionSynchronizationManager.bindResource(obtainDataSource(), txObject.getConnectionHolder());
 			}
 		}
