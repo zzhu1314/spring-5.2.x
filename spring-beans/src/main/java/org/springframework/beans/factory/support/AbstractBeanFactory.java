@@ -279,6 +279,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			// Check if bean definition exists in this factory.
 			//获取父容器，在springmvc中会出现父子容器
 			BeanFactory parentBeanFactory = getParentBeanFactory();
+			//若当前容器中没有这个bean，这里会从父容器获取bean
 			if (parentBeanFactory != null && !containsBeanDefinition(beanName)) {
 				// Not found -> check parent.
 				String nameToLookup = originalBeanName(name);

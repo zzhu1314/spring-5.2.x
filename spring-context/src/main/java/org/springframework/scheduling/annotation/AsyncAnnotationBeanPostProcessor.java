@@ -142,6 +142,10 @@ public class AsyncAnnotationBeanPostProcessor extends AbstractBeanFactoryAwareAd
 	}
 
 
+	/**
+	 * @EnableAsync的advisor没有注入到IOC中，是在Async的后置处理器中加入的，单独处理
+	 * @param beanFactory
+	 */
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) {
 		super.setBeanFactory(beanFactory);

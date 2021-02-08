@@ -84,7 +84,9 @@ public class CachingConfigurationSelector extends AdviceModeImportSelector<Enabl
 	 */
 	private String[] getProxyImports() {
 		List<String> result = new ArrayList<>(3);
+		//AOP代理的入口类
 		result.add(AutoProxyRegistrar.class.getName());
+		//创建缓存切面的advisor
 		result.add(ProxyCachingConfiguration.class.getName());
 		if (jsr107Present && jcacheImplPresent) {
 			result.add(PROXY_JCACHE_CONFIGURATION_CLASS);

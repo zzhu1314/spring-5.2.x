@@ -69,12 +69,16 @@ public final class MethodIntrospector {
 		for (Class<?> currentHandlerType : handlerTypes) {
 			final Class<?> targetClass = (specificHandlerType != null ? specificHandlerType : currentHandlerType);
 
+			//遍历所有的方法
 			ReflectionUtils.doWithMethods(currentHandlerType, method -> {
+				//获取最原始方法，代理的原始方法
 				Method specificMethod = ClassUtils.getMostSpecificMethod(method, targetClass);
+				//调用外部的匿名函数，返回类上和方法上的RequestMappingInfo
 				T result = metadataLookup.inspect(specificMethod);
 				if (result != null) {
 					Method bridgedMethod = BridgeMethodResolver.findBridgedMethod(specificMethod);
 					if (bridgedMethod == specificMethod || metadataLookup.inspect(bridgedMethod) == null) {
+						//将方法和和RequestMappingInfo放入map建立映射关系
 						methodMap.put(specificMethod, result);
 					}
 				}

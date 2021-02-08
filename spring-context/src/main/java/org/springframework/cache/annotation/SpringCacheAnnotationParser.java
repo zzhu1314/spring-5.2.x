@@ -91,10 +91,20 @@ public class SpringCacheAnnotationParser implements CacheAnnotationParser, Seria
 		return ops;
 	}
 
+	/**
+	 * 解析Cache相关的注解
+	 * @param cachingConfig
+	 * @param ae
+	 * @param localOnly
+	 * @return
+	 */
 	@Nullable
 	private Collection<CacheOperation> parseCacheAnnotations(
 			DefaultCacheConfig cachingConfig, AnnotatedElement ae, boolean localOnly) {
 
+		/**
+		 * 获取四种注解的属性
+		 */
 		Collection<? extends Annotation> anns = (localOnly ?
 				AnnotatedElementUtils.getAllMergedAnnotations(ae, CACHE_OPERATION_ANNOTATIONS) :
 				AnnotatedElementUtils.findAllMergedAnnotations(ae, CACHE_OPERATION_ANNOTATIONS));
@@ -103,12 +113,16 @@ public class SpringCacheAnnotationParser implements CacheAnnotationParser, Seria
 		}
 
 		final Collection<CacheOperation> ops = new ArrayList<>(1);
+		//解析@Cacheable注解，封装成CacheableOperation
 		anns.stream().filter(ann -> ann instanceof Cacheable).forEach(
 				ann -> ops.add(parseCacheableAnnotation(ae, cachingConfig, (Cacheable) ann)));
+		//解析@CacheEvict注解，封装成CacheEvictOperation
 		anns.stream().filter(ann -> ann instanceof CacheEvict).forEach(
 				ann -> ops.add(parseEvictAnnotation(ae, cachingConfig, (CacheEvict) ann)));
+		//解析@CachePut注解，封装成CacheOperation
 		anns.stream().filter(ann -> ann instanceof CachePut).forEach(
 				ann -> ops.add(parsePutAnnotation(ae, cachingConfig, (CachePut) ann)));
+		//解析Caching注解(这是一个组合注解)
 		anns.stream().filter(ann -> ann instanceof Caching).forEach(
 				ann -> parseCachingAnnotation(ae, cachingConfig, (Caching) ann, ops));
 		return ops;

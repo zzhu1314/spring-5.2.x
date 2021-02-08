@@ -503,10 +503,13 @@ public class DispatcherServlet extends FrameworkServlet {
 		initMultipartResolver(context);
 		initLocaleResolver(context);
 		initThemeResolver(context);
+		//初始化HadlerMapping
 		initHandlerMappings(context);
+		//初始化HandlerAdapter
 		initHandlerAdapters(context);
 		initHandlerExceptionResolvers(context);
 		initRequestToViewNameTranslator(context);
+		//初始化视图解析器
 		initViewResolvers(context);
 		initFlashMapManager(context);
 	}
@@ -634,16 +637,19 @@ public class DispatcherServlet extends FrameworkServlet {
 
 		if (this.detectAllHandlerAdapters) {
 			// Find all HandlerAdapters in the ApplicationContext, including ancestor contexts.
+			//从容器中中获取所有的HandlerAdapter
 			Map<String, HandlerAdapter> matchingBeans =
 					BeanFactoryUtils.beansOfTypeIncludingAncestors(context, HandlerAdapter.class, true, false);
 			if (!matchingBeans.isEmpty()) {
 				this.handlerAdapters = new ArrayList<>(matchingBeans.values());
 				// We keep HandlerAdapters in sorted order.
+				//排序
 				AnnotationAwareOrderComparator.sort(this.handlerAdapters);
 			}
 		}
 		else {
 			try {
+				//获取默认的HandlerAdapter
 				HandlerAdapter ha = context.getBean(HANDLER_ADAPTER_BEAN_NAME, HandlerAdapter.class);
 				this.handlerAdapters = Collections.singletonList(ha);
 			}
@@ -654,6 +660,7 @@ public class DispatcherServlet extends FrameworkServlet {
 
 		// Ensure we have at least some HandlerAdapters, by registering
 		// default HandlerAdapters if no other adapters are found.
+		//获取默认的adapter
 		if (this.handlerAdapters == null) {
 			this.handlerAdapters = getDefaultStrategies(context, HandlerAdapter.class);
 			if (logger.isTraceEnabled()) {
@@ -925,6 +932,7 @@ public class DispatcherServlet extends FrameworkServlet {
 		}
 
 		// Make framework objects available to handlers and view objects.
+		//设置request的一系列属性
 		request.setAttribute(WEB_APPLICATION_CONTEXT_ATTRIBUTE, getWebApplicationContext());
 		request.setAttribute(LOCALE_RESOLVER_ATTRIBUTE, this.localeResolver);
 		request.setAttribute(THEME_RESOLVER_ATTRIBUTE, this.themeResolver);
@@ -940,6 +948,7 @@ public class DispatcherServlet extends FrameworkServlet {
 		}
 
 		try {
+			//请求的核心流程
 			doDispatch(request, response);
 		}
 		finally {
@@ -1013,6 +1022,7 @@ public class DispatcherServlet extends FrameworkServlet {
 				multipartRequestParsed = (processedRequest != request);
 
 				// Determine handler for the current request.
+				//
 				mappedHandler = getHandler(processedRequest);
 				if (mappedHandler == null) {
 					noHandlerFound(processedRequest, response);
@@ -1229,8 +1239,16 @@ public class DispatcherServlet extends FrameworkServlet {
 	 */
 	@Nullable
 	protected HandlerExecutionChain getHandler(HttpServletRequest request) throws Exception {
+		/**
+		 * handlerMappings 是由@EnableWebMvc注入到容器，DispatcherServlet在创建Springmvc上下文是，发布了一个ContextRefreshEvent时间，
+		 * 待容器启动后，发布的事件将容器中的HandlerMapping放入handlerMappings容器中
+		 */
 		if (this.handlerMappings != null) {
 			for (HandlerMapping mapping : this.handlerMappings) {
+				/**
+				  *从所有的HanlerMappings中寻找一个合适的HandlerMapping
+				  * RequestMappingHandlerMapping用于处理@Controller和@RequestMapping注解将方法封装成HandlerMethod
+				 */
 				HandlerExecutionChain handler = mapping.getHandler(request);
 				if (handler != null) {
 					return handler;

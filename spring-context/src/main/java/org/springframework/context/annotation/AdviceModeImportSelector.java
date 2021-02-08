@@ -64,9 +64,15 @@ public abstract class AdviceModeImportSelector<A extends Annotation> implements 
 	 */
 	@Override
 	public final String[] selectImports(AnnotationMetadata importingClassMetadata) {
+		/**
+		 * 获取注入selector所在的注解
+		 * 如 TransactionManagementConfigurationSelector.class 是由@EnableTransactionManagement注入引入的
+		 * 自己引入@Import就采用EnableTransactionMAnagement默认的参数
+		 * 原理 获取父类的泛型类型
+		 */
 		Class<?> annType = GenericTypeResolver.resolveTypeArgument(getClass(), AdviceModeImportSelector.class);
 		Assert.state(annType != null, "Unresolvable type argument for AdviceModeImportSelector");
-
+		//获取注解的属性值
 		AnnotationAttributes attributes = AnnotationConfigUtils.attributesFor(importingClassMetadata, annType);
 		if (attributes == null) {
 			throw new IllegalArgumentException(String.format(

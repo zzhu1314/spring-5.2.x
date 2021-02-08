@@ -287,11 +287,14 @@ public class ContextLoader {
 						// The context instance was injected without an explicit parent ->
 						// determine parent for root web application context, if any.
 						ApplicationContext parent = loadParentContext(servletContext);
+						//设置父容器
 						cwac.setParent(parent);
 					}
+					//调用refresh方法，创建spring容器
 					configureAndRefreshWebApplicationContext(cwac, servletContext);
 				}
 			}
+			//将spring容器设置到servlet上下文中，用于设置springmvc的父容器
 			servletContext.setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, this.context);
 
 			ClassLoader ccl = Thread.currentThread().getContextClassLoader();
@@ -398,6 +401,7 @@ public class ContextLoader {
 		}
 
 		customizeContext(sc, wac);
+		//创建spring容器
 		wac.refresh();
 	}
 

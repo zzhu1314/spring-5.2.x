@@ -5,5 +5,6 @@ package com.xml.ioc.aop.jdk;
  */
 public interface People {
 
+
 	void findFriend(String s);
 }

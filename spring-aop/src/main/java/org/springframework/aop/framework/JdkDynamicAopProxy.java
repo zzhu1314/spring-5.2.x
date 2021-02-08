@@ -118,6 +118,7 @@ final class JdkDynamicAopProxy implements AopProxy, InvocationHandler, Serializa
 		if (logger.isTraceEnabled()) {
 			logger.trace("Creating JDK dynamic proxy: " + this.advised.getTargetSource());
 		}
+		//JDK动态代理根据接口创建的方法，这里获取目标对象的接口，Aop的动态代理实际上是实现了adviced接口目标类接口等多个接口
 		Class<?>[] proxiedInterfaces = AopProxyUtils.completeProxiedInterfaces(this.advised, true);
 		findDefinedEqualsAndHashCodeMethods(proxiedInterfaces);
 		//Jdk动态代理
@@ -151,6 +152,7 @@ final class JdkDynamicAopProxy implements AopProxy, InvocationHandler, Serializa
 	 * Implementation of {@code InvocationHandler.invoke}.
 	 * <p>Callers will see exactly the exception thrown by the target,
 	 * unless a hook method throws an exception.
+	 * AOP的被代理接口 有业务目标类接口，Advised接口
 	 */
 	@Override
 	@Nullable
@@ -177,6 +179,10 @@ final class JdkDynamicAopProxy implements AopProxy, InvocationHandler, Serializa
 			else if (!this.advised.opaque && method.getDeclaringClass().isInterface() &&
 					method.getDeclaringClass().isAssignableFrom(Advised.class)) {
 				// Service invocations on ProxyConfig with the proxy config...
+				/**
+				 * 当被代理方法为addAdvisors时
+				 *将advisor加入advised(Proxy)中
+				 */
 				return AopUtils.invokeJoinpointUsingReflection(this.advised, method, args);
 			}
 

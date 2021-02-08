@@ -39,6 +39,10 @@ import org.springframework.context.annotation.Role;
 @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 public class ProxyCachingConfiguration extends AbstractCachingConfiguration {
 
+	/**
+	 * 缓存切面advisor
+	 * @return
+	 */
 	@Bean(name = CacheManagementConfigUtils.CACHE_ADVISOR_BEAN_NAME)
 	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 	public BeanFactoryCacheOperationSourceAdvisor cacheAdvisor() {
@@ -51,12 +55,21 @@ public class ProxyCachingConfiguration extends AbstractCachingConfiguration {
 		return advisor;
 	}
 
+	/**
+	 * 缓存切面注解收集器
+	 * 采集方法或者类上的注解属性，并封装成 CacheOperation
+	 * @return
+	 */
 	@Bean
 	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 	public CacheOperationSource cacheOperationSource() {
 		return new AnnotationCacheOperationSource();
 	}
 
+	/**
+	 * 缓存切面的advice增强器
+	 * @return
+	 */
 	@Bean
 	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 	public CacheInterceptor cacheInterceptor() {

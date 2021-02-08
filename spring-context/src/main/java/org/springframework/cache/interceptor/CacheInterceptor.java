@@ -58,6 +58,7 @@ public class CacheInterceptor extends CacheAspectSupport implements MethodInterc
 		};
 
 		try {
+			//执行缓存切面的拦截
 			return execute(aopAllianceInvoker, invocation.getThis(), method, invocation.getArguments());
 		}
 		catch (CacheOperationInvoker.ThrowableWrapper th) {

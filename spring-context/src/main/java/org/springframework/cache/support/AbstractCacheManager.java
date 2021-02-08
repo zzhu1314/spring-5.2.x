@@ -57,6 +57,7 @@ public abstract class AbstractCacheManager implements CacheManager, Initializing
 	 * can also be called to re-initialize at runtime.
 	 * @since 4.2.2
 	 * @see #loadCaches()
+	 * 对加入到CacheManager的Cache包装成一个map
 	 */
 	public void initializeCaches() {
 		Collection<? extends Cache> caches = loadCaches();

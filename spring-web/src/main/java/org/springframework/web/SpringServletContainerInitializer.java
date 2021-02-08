@@ -108,6 +108,14 @@ import org.springframework.util.ReflectionUtils;
  * @since 3.1
  * @see #onStartup(Set, ServletContext)
  * @see WebApplicationInitializer
+ *
+ */
+
+/**
+ * 基于servlet3.0规范，tomcat的spi机制
+ * tomcat启动时会加载SpringServletContainerInitializerd的onStartup方法
+ * @HandlesTypes(WebApplicationInitializer.class)作为入参
+ *
  */
 @HandlesTypes(WebApplicationInitializer.class)
 public class SpringServletContainerInitializer implements ServletContainerInitializer {
@@ -145,6 +153,9 @@ public class SpringServletContainerInitializer implements ServletContainerInitia
 		List<WebApplicationInitializer> initializers = new LinkedList<>();
 
 		if (webAppInitializerClasses != null) {
+			/**
+			 * 收集实现了WebApplicationInitializer接口的类，放入initializers集合
+			 */
 			for (Class<?> waiClass : webAppInitializerClasses) {
 				// Be defensive: Some servlet containers provide us with invalid classes,
 				// no matter what @HandlesTypes says...
@@ -167,8 +178,13 @@ public class SpringServletContainerInitializer implements ServletContainerInitia
 		}
 
 		servletContext.log(initializers.size() + " Spring WebApplicationInitializers detected on classpath");
+		//对initializers集合排序
 		AnnotationAwareOrderComparator.sort(initializers);
 		for (WebApplicationInitializer initializer : initializers) {
+			/**
+			 * 	调用onstartup方法进行容器的初始化
+			 * 	servletContext:servlet容器的上下文，全局唯一
+			 */
 			initializer.onStartup(servletContext);
 		}
 	}

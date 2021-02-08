@@ -60,7 +60,9 @@ public abstract class AbstractDispatcherServletInitializer extends AbstractConte
 
 	@Override
 	public void onStartup(ServletContext servletContext) throws ServletException {
+		//调用父类注册spring的上下文
 		super.onStartup(servletContext);
+		//注册springmvc的上下文，以及注册DispatcherServlet
 		registerDispatcherServlet(servletContext);
 	}
 
@@ -78,24 +80,27 @@ public abstract class AbstractDispatcherServletInitializer extends AbstractConte
 	protected void registerDispatcherServlet(ServletContext servletContext) {
 		String servletName = getServletName();
 		Assert.hasLength(servletName, "getServletName() must not return null or empty");
-
+        //创建springmvc的上下文容器AnnotationConfigWebApplicationContext
 		WebApplicationContext servletAppContext = createServletApplicationContext();
 		Assert.notNull(servletAppContext, "createServletApplicationContext() must not return null");
-
+        //创建DispatcherServlet 包含springmvc的上下文
 		FrameworkServlet dispatcherServlet = createDispatcherServlet(servletAppContext);
 		Assert.notNull(dispatcherServlet, "createDispatcherServlet(WebApplicationContext) must not return null");
 		dispatcherServlet.setContextInitializers(getServletApplicationContextInitializers());
 
+		//往servlet容器中添加servlet
 		ServletRegistration.Dynamic registration = servletContext.addServlet(servletName, dispatcherServlet);
 		if (registration == null) {
 			throw new IllegalStateException("Failed to register servlet with name '" + servletName + "'. " +
 					"Check if there is another servlet registered under the same name.");
 		}
-
+        //设置servlet在tomcat启动时加载，回调用servlet的init方法，创建springmvc容器
 		registration.setLoadOnStartup(1);
+		//设置dispacherSelvlet的拦截路径
 		registration.addMapping(getServletMappings());
 		registration.setAsyncSupported(isAsyncSupported());
 
+		//添加过滤器
 		Filter[] filters = getServletFilters();
 		if (!ObjectUtils.isEmpty(filters)) {
 			for (Filter filter : filters) {

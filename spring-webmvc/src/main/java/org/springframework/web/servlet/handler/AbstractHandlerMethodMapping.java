@@ -212,7 +212,12 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	 * @see #handlerMethodsInitialized
 	 */
 	protected void initHandlerMethods() {
+		/**
+		 * getCandidateBeanNames():获取容器中的所有Object类型的bean
+		 * 这里只获取当前容器的bean，为获取父容器
+		 */
 		for (String beanName : getCandidateBeanNames()) {
+			//不包含多列bean的代理bean
 			if (!beanName.startsWith(SCOPED_TARGET_NAME_PREFIX)) {
 				processCandidateBean(beanName);
 			}
@@ -254,7 +259,11 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 				logger.trace("Could not resolve type for bean '" + beanName + "'", ex);
 			}
 		}
+		/**
+		 * 判断beanType是否有@Controller或者@RequestMapping属性
+		 */
 		if (beanType != null && isHandler(beanType)) {
+			//建立HandlerMethod和url的映射关系
 			detectHandlerMethods(beanName);
 		}
 	}
@@ -269,7 +278,9 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 				obtainApplicationContext().getType((String) handler) : handler.getClass());
 
 		if (handlerType != null) {
+			//获取原始类型
 			Class<?> userType = ClassUtils.getUserClass(handlerType);
+			//methods是method和RequestMappingInfo的映射关系
 			Map<Method, T> methods = MethodIntrospector.selectMethods(userType,
 					(MethodIntrospector.MetadataLookup<T>) method -> {
 						try {
@@ -282,9 +293,16 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 					});
 			if (logger.isTraceEnabled()) {
 				logger.trace(formatMappings(userType, methods));
+
 			}
 			methods.forEach((method, mapping) -> {
 				Method invocableMethod = AopUtils.selectInvocableMethod(method, userType);
+				/**
+				 * handler：在@Controller时，时beanName
+				 * invocableMethod：method
+				 * mapping：RequestMappingInfo
+				 *建立handlerMethod的映射关系
+				 */
 				registerHandlerMethod(handler, invocableMethod, mapping);
 			});
 		}
@@ -325,10 +343,15 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	 * @return the created HandlerMethod
 	 */
 	protected HandlerMethod createHandlerMethod(Object handler, Method method) {
+		/**
+		 * 当handler是一个BeanName时
+		 * HandlerMethod包含了beanFactory和method
+		 */
 		if (handler instanceof String) {
 			return new HandlerMethod((String) handler,
 					obtainApplicationContext().getAutowireCapableBeanFactory(), method);
 		}
+		//如果是handler一个Bean
 		return new HandlerMethod(handler, method);
 	}
 
@@ -360,10 +383,13 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	 */
 	@Override
 	protected HandlerMethod getHandlerInternal(HttpServletRequest request) throws Exception {
+		//寻找url
 		String lookupPath = getUrlPathHelper().getLookupPathForRequest(request);
+		//将url放入属性中
 		request.setAttribute(LOOKUP_PATH, lookupPath);
 		this.mappingRegistry.acquireReadLock();
 		try {
+			//获取HandlerMethod
 			HandlerMethod handlerMethod = lookupHandlerMethod(lookupPath, request);
 			return (handlerMethod != null ? handlerMethod.createWithResolvedBean() : null);
 		}
@@ -599,12 +625,16 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 			}
 			this.readWriteLock.writeLock().lock();
 			try {
+				//创建一个HandlerMethod
 				HandlerMethod handlerMethod = createHandlerMethod(handler, method);
+				//验证handlerMapping是否重复
 				validateMethodMapping(handlerMethod, mapping);
+				//建立RequestMappingInfo与handlerMethod的映射
 				this.mappingLookup.put(mapping, handlerMethod);
-
+                //寻找url
 				List<String> directUrls = getDirectUrls(mapping);
 				for (String url : directUrls) {
+					//建立url与RequestMappingInfo的映射
 					this.urlLookup.add(url, mapping);
 				}
 

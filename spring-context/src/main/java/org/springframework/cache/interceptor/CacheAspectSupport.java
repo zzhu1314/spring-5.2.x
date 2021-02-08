@@ -218,6 +218,7 @@ public abstract class CacheAspectSupport extends AbstractCacheInvoker
 			// Lazily initialize cache resolver via default cache manager...
 			Assert.state(this.beanFactory != null, "CacheResolver or BeanFactory must be set on cache aspect");
 			try {
+				//从容器中获取CacheManager
 				setCacheManager(this.beanFactory.getBean(CacheManager.class));
 			}
 			catch (NoUniqueBeanDefinitionException ex) {
@@ -229,6 +230,7 @@ public abstract class CacheAspectSupport extends AbstractCacheInvoker
 						"Register a CacheManager bean or remove the @EnableCaching annotation from your configuration.");
 			}
 		}
+		//表明这个是否是实列化后
 		this.initialized = true;
 	}
 
@@ -249,7 +251,7 @@ public abstract class CacheAspectSupport extends AbstractCacheInvoker
 
 	protected Collection<? extends Cache> getCaches(
 			CacheOperationInvocationContext<CacheOperation> context, CacheResolver cacheResolver) {
-
+         //获取CacheManager中添加的Cache
 		Collection<? extends Cache> caches = cacheResolver.resolveCaches(context);
 		if (caches.isEmpty()) {
 			throw new IllegalStateException("No cache could be resolved for '" +
@@ -261,7 +263,7 @@ public abstract class CacheAspectSupport extends AbstractCacheInvoker
 
 	protected CacheOperationContext getOperationContext(
 			CacheOperation operation, Method method, Object[] args, Object target, Class<?> targetClass) {
-
+		//Cache注解属性的metadata
 		CacheOperationMetadata metadata = getCacheOperationMetadata(operation, method, targetClass);
 		return new CacheOperationContext(metadata, args, target);
 	}
@@ -286,6 +288,7 @@ public abstract class CacheAspectSupport extends AbstractCacheInvoker
 				operationKeyGenerator = getBean(operation.getKeyGenerator(), KeyGenerator.class);
 			}
 			else {
+				//单列
 				operationKeyGenerator = getKeyGenerator();
 			}
 			CacheResolver operationCacheResolver;
@@ -297,11 +300,14 @@ public abstract class CacheAspectSupport extends AbstractCacheInvoker
 				operationCacheResolver = new SimpleCacheResolver(cacheManager);
 			}
 			else {
+				//获取前面bean实列化后创建好的cacheResolver  cacheResolver封装了CacheManager
 				operationCacheResolver = getCacheResolver();
 				Assert.state(operationCacheResolver != null, "No CacheResolver/CacheManager set");
 			}
+			//返回metadata
 			metadata = new CacheOperationMetadata(operation, method, targetClass,
 					operationKeyGenerator, operationCacheResolver);
+			//放入metada的缓存
 			this.metadataCache.put(cacheKey, metadata);
 		}
 		return metadata;
@@ -337,18 +343,22 @@ public abstract class CacheAspectSupport extends AbstractCacheInvoker
 	@Nullable
 	protected Object execute(CacheOperationInvoker invoker, Object target, Method method, Object[] args) {
 		// Check whether aspect is enabled (to cope with cases where the AJ is pulled in automatically)
+		//检查advice是否是被实列化后
 		if (this.initialized) {
 			Class<?> targetClass = getTargetClass(target);
+			//cache注解解析器
 			CacheOperationSource cacheOperationSource = getCacheOperationSource();
 			if (cacheOperationSource != null) {
+				//获取注解的属性对象
 				Collection<CacheOperation> operations = cacheOperationSource.getCacheOperations(method, targetClass);
 				if (!CollectionUtils.isEmpty(operations)) {
+					//CacheOperationContexts  创建Cache的上下文
 					return execute(invoker, method,
 							new CacheOperationContexts(operations, method, args, target, targetClass));
 				}
 			}
 		}
-
+        //执行链式调用
 		return invoker.invoke();
 	}
 
@@ -374,6 +384,7 @@ public abstract class CacheAspectSupport extends AbstractCacheInvoker
 	private Object execute(final CacheOperationInvoker invoker, Method method, CacheOperationContexts contexts) {
 		// Special handling of synchronized invocation
 		if (contexts.isSynchronized()) {
+			//获取CacheOperation的上下文
 			CacheOperationContext context = contexts.get(CacheableOperation.class).iterator().next();
 			if (isConditionPassing(context, CacheOperationExpressionEvaluator.NO_RESULT)) {
 				Object key = generateKey(context, CacheOperationExpressionEvaluator.NO_RESULT);
@@ -394,16 +405,22 @@ public abstract class CacheAspectSupport extends AbstractCacheInvoker
 		}
 
 
+		/**
+		 * 	提前执行@CacheEvits的clear方法 根据@CacheEvit的属性beforeInvocation
+		 * 	从容器中获取	CacheEvictOperation注解队形的属性，并执行clear方法
+		 */
 		// Process any early evictions
 		processCacheEvicts(contexts.get(CacheEvictOperation.class), true,
 				CacheOperationExpressionEvaluator.NO_RESULT);
 
 		// Check if we have a cached item matching the conditions
+		//执行@Cacheable注解 ,查询缓存是否有返回值,调用cache的get方法
 		Cache.ValueWrapper cacheHit = findCachedItem(contexts.get(CacheableOperation.class));
 
 		// Collect puts from any @Cacheable miss, if no cached item is found
 		List<CachePutRequest> cachePutRequests = new LinkedList<>();
 		if (cacheHit == null) {
+			//如过缓存为空，收集@CachePut
 			collectPutRequests(contexts.get(CacheableOperation.class),
 					CacheOperationExpressionEvaluator.NO_RESULT, cachePutRequests);
 		}
@@ -411,26 +428,34 @@ public abstract class CacheAspectSupport extends AbstractCacheInvoker
 		Object cacheValue;
 		Object returnValue;
 
+		/**
+		 * 如果缓存值不为空，且没有@CachePut注解
+		 */
 		if (cacheHit != null && !hasCachePut(contexts)) {
 			// If there are no put requests, just use the cache hit
+			//获取缓存中的值
 			cacheValue = cacheHit.get();
+			//包装返回值
 			returnValue = wrapCacheValue(method, cacheValue);
 		}
 		else {
 			// Invoke the method if we don't have a cache hit
+			//执行被代理方法
 			returnValue = invokeOperation(invoker);
 			cacheValue = unwrapReturnValue(returnValue);
 		}
 
+		//收集CachePutOperation
 		// Collect any explicit @CachePuts
 		collectPutRequests(contexts.get(CachePutOperation.class), cacheValue, cachePutRequests);
-
 		// Process any collected put requests, either from @CachePut or a @Cacheable miss
+		//执行put方法
 		for (CachePutRequest cachePutRequest : cachePutRequests) {
 			cachePutRequest.apply(cacheValue);
 		}
 
 		// Process any late evictions
+		//最后执行@CacheEvits的clear方法 根据@CacheEvit的属性beforeInvocation
 		processCacheEvicts(contexts.get(CacheEvictOperation.class), false, cacheValue);
 
 		return returnValue;
@@ -486,6 +511,7 @@ public abstract class CacheAspectSupport extends AbstractCacheInvoker
 		for (Cache cache : context.getCaches()) {
 			if (operation.isCacheWide()) {
 				logInvalidating(context, operation, null);
+				//执行clear方法
 				doClear(cache, operation.isBeforeInvocation());
 			}
 			else {
@@ -493,6 +519,7 @@ public abstract class CacheAspectSupport extends AbstractCacheInvoker
 					key = generateKey(context, result);
 				}
 				logInvalidating(context, operation, key);
+				//执行evict方法
 				doEvict(cache, key, operation.isBeforeInvocation());
 			}
 		}
@@ -517,6 +544,7 @@ public abstract class CacheAspectSupport extends AbstractCacheInvoker
 		for (CacheOperationContext context : contexts) {
 			if (isConditionPassing(context, result)) {
 				Object key = generateKey(context, result);
+				//执行cache的get方法
 				Cache.ValueWrapper cached = findInCaches(context, key);
 				if (cached != null) {
 					return cached;
@@ -591,9 +619,17 @@ public abstract class CacheAspectSupport extends AbstractCacheInvoker
 
 		private final boolean sync;
 
+		/**
+		 * 每一个CacheOperationContext对应一个CacheOperation，即一个Cache注解
+		 * @param operations
+		 * @param method
+		 * @param args
+		 * @param target
+		 * @param targetClass
+		 */
 		public CacheOperationContexts(Collection<? extends CacheOperation> operations, Method method,
 				Object[] args, Object target, Class<?> targetClass) {
-
+			//注解属性的上下文 key为注解属性的反射对象，value为封装的OperationContext
 			this.contexts = new LinkedMultiValueMap<>(operations.size());
 			for (CacheOperation op : operations) {
 				this.contexts.add(op.getClass(), getOperationContext(op, method, args, target, targetClass));
@@ -705,6 +741,7 @@ public abstract class CacheAspectSupport extends AbstractCacheInvoker
 			this.metadata = metadata;
 			this.args = extractArgs(metadata.method, args);
 			this.target = target;
+			//获取所有的Cache
 			this.caches = CacheAspectSupport.this.getCaches(this, metadata.cacheResolver);
 			this.cacheNames = createCacheNames(this.caches);
 		}

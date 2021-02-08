@@ -280,9 +280,10 @@ public class WebMvcConfigurationSupport implements ApplicationContextAware, Serv
 			@Qualifier("mvcContentNegotiationManager") ContentNegotiationManager contentNegotiationManager,
 			@Qualifier("mvcConversionService") FormattingConversionService conversionService,
 			@Qualifier("mvcResourceUrlProvider") ResourceUrlProvider resourceUrlProvider) {
-
+       //创建handlerMapping
 		RequestMappingHandlerMapping mapping = createRequestMappingHandlerMapping();
 		mapping.setOrder(0);
+		//设置拦截器，最终是交给容器中的WebmvcConfigurer实现
 		mapping.setInterceptors(getInterceptors(conversionService, resourceUrlProvider));
 		mapping.setContentNegotiationManager(contentNegotiationManager);
 		mapping.setCorsConfigurations(getCorsConfigurations());
@@ -337,6 +338,7 @@ public class WebMvcConfigurationSupport implements ApplicationContextAware, Serv
 			ResourceUrlProvider mvcResourceUrlProvider) {
 		if (this.interceptors == null) {
 			InterceptorRegistry registry = new InterceptorRegistry();
+			//钩子函数,交给子类去创建Interceptor
 			addInterceptors(registry);
 			registry.addInterceptor(new ConversionServiceExposingInterceptor(mvcConversionService));
 			registry.addInterceptor(new ResourceUrlProviderExposingInterceptor(mvcResourceUrlProvider));

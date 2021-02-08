@@ -49,6 +49,10 @@ public class RequestContextListener implements ServletRequestListener {
 			RequestContextListener.class.getName() + ".REQUEST_ATTRIBUTES";
 
 
+	/**
+	 *
+	 * @param requestEvent
+	 */
 	@Override
 	public void requestInitialized(ServletRequestEvent requestEvent) {
 		if (!(requestEvent.getServletRequest() instanceof HttpServletRequest)) {

@@ -61,6 +61,13 @@ public abstract class AbstractAdvisingBeanPostProcessor extends ProxyProcessorSu
 		return bean;
 	}
 
+	/**
+	 * 如果这个bean被AOP代理了就,就会将切面advisor加入到代理对象中，实际上就是ProxyFactory中的advisor
+	 * JdkDynamicAopProxy中包含了ProxyFactory
+	 * @param bean
+	 * @param beanName
+	 * @return
+	 */
 	@Override
 	public Object postProcessAfterInitialization(Object bean, String beanName) {
 		if (this.advisor == null || bean instanceof AopInfrastructureBean) {

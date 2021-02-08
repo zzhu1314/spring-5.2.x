@@ -196,6 +196,7 @@ public abstract class AbstractApplicationEventMulticaster
 				//获取监听器并对监听器排序
 				Collection<ApplicationListener<?>> listeners =
 						retrieveApplicationListeners(eventType, sourceType, retriever);
+				//根据时间类型作为key,将监听器放入缓存中
 				this.retrieverCache.put(cacheKey, retriever);
 				return listeners;
 			}

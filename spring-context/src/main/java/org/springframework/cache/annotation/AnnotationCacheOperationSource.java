@@ -137,6 +137,7 @@ public class AnnotationCacheOperationSource extends AbstractFallbackCacheOperati
 	@Nullable
 	protected Collection<CacheOperation> determineCacheOperations(CacheOperationProvider provider) {
 		Collection<CacheOperation> ops = null;
+		//parser 为构造函数初始化的 SpringCacheAnnotationParser
 		for (CacheAnnotationParser parser : this.annotationParsers) {
 			Collection<CacheOperation> annOps = provider.getCacheOperations(parser);
 			if (annOps != null) {

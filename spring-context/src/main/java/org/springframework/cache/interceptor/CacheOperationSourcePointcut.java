@@ -42,6 +42,12 @@ abstract class CacheOperationSourcePointcut extends StaticMethodMatcherPointcut 
 	}
 
 
+	/**
+	 * 缓存切面的方法匹配
+	 * @param method
+	 * @param targetClass
+	 * @return
+	 */
 	@Override
 	public boolean matches(Method method, Class<?> targetClass) {
 		CacheOperationSource cas = getCacheOperationSource();

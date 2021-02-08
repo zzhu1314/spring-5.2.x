@@ -11,7 +11,7 @@ public class Test {
 		// 保存生成的代理类的字节码文件
 		System.getProperties().put("sun.misc.ProxyGenerator.saveGeneratedFiles", "true");
 		//People proxy = (People) Proxy.newProxyInstance(Test.class.getClassLoader(), new Class<?>[]{People.class}, new Parent(new XiaoWang()));
-		People proxy = (People) new Parent(new XiaoWang()).getProxy();
-		proxy.findFriend("s");
+		new Parent(new XiaoWang()).getProxy();
+		//proxy.findFriend("s");
 	}
 }
