@@ -1,5 +1,8 @@
 package com.xml.ioc.properties;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
+
 /**
  * <context:property-placeholder/>作用
  * 为容器注入PropertySourcesPlaceholderConfigurer
@@ -8,7 +11,9 @@ package com.xml.ioc.properties;
  * 时实现了EnvironmentAware接口，会为Environment属性赋值
  * <property></>标签的注入是在beanFactory被执行的过程 对MutablePropertyValues的值进行修改
  */
+@PropertySource(value = "classpath:application.properties")
 public class PropertiesBeanDemo {
+
 
 	private String name;
 

@@ -57,15 +57,15 @@ public class XmlApplication {
 		//所有销毁方法都会被调用，销毁逻辑都被放在了DisposableBeans中
 		applicationContext.close();
 */
-	/*	*//**properties属性的注入**//*
+	/*	*//**properties属性的注入**/
 		PropertiesBeanDemo propertiesBeanDemo = applicationContext.getBean(PropertiesBeanDemo.class);
 		System.out.println(propertiesBeanDemo.getName()+"-------"+propertiesBeanDemo.getAge());
-		*//**@value属性注入**//*
+		 /**@value属性注入**//*
 		ValueBean valueBean = applicationContext.getBean(ValueBean.class);
 		System.out.println(valueBean.getName());*/
 		//?为什么获取factoryBean的Shan.class能获取到
-		applicationContext.getBean(Cat.class);
-	System.out.println(applicationContext.getBean(Shan.class));
+	/*	applicationContext.getBean(Cat.class);
+	System.out.println(applicationContext.getBean(Shan.class));*/
 	/*	System.out.println(applicationContext.getBean(ScopeBean.class));
 		System.out.println(applicationContext.getBean(ScopeBean.class));
 		applicationContext.getBeanFactory().destroyScopedBean("");//销毁自定义scope的bean*/

@@ -5,3 +5,16 @@
 3.ReflectionUtils 反射工具类
 4.AnnotationAwareOrderComparator 用于@Orderd ordered接口排序
 5.UrlPathHelper 通过request找请求的url
+6.CachingMetadataReaderFactory 用于解析类的注解信息 封装成AnnotationMetadata信息
+ CachingMetadataReaderFactory cachingMetadataReaderFactory = new CachingMetadataReaderFactory();
+  AnnotationMetadata annotationMetadata = cachingMetadataReaderFactory.getMetadataReader(WebMvcServiceImpl.class.getName()).getAnnotationMetadata();
+7. AnnotationMetadata.introspect((Class<?>) source) 将Class对象封装成AnnotationMetadata对象
+
+
+spring最大的特点就是把一个对象聚合到另一个对象
+
+
+策略模式
+1.将所有算法抽象成一个具体类,每一个类都实现一个相同的接口
+2.该接口定义一个support和一个invoke方法，support提供判断逻辑，判断是否选用这个算法，invoke提供具体的执行逻辑
+3.将所有的算法放入一个聚合中

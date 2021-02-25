@@ -95,7 +95,7 @@ class ComponentScanAnnotationParser {
 		scanner.setResourcePattern(componentScan.getString("resourcePattern"));
 
 		/**
-		 * 设置ComponentScan的包干回则
+		 * 设置ComponentScan的包含规则
 		 */
 		for (AnnotationAttributes filter : componentScan.getAnnotationArray("includeFilters")) {
 			for (TypeFilter typeFilter : typeFiltersFor(filter)) {

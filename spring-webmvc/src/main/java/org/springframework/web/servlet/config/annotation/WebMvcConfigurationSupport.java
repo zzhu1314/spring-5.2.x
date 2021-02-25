@@ -614,9 +614,12 @@ public class WebMvcConfigurationSupport implements ApplicationContextAware, Serv
 
 		RequestMappingHandlerAdapter adapter = createRequestMappingHandlerAdapter();
 		adapter.setContentNegotiationManager(contentNegotiationManager);
+		//设置消息转换器
 		adapter.setMessageConverters(getMessageConverters());
 		adapter.setWebBindingInitializer(getConfigurableWebBindingInitializer(conversionService, validator));
+		//设置自定义的请求参数处理器
 		adapter.setCustomArgumentResolvers(getArgumentResolvers());
+		//设置自定义的返回结果处理器
 		adapter.setCustomReturnValueHandlers(getReturnValueHandlers());
 
 		if (jackson2Present) {
@@ -808,10 +811,13 @@ public class WebMvcConfigurationSupport implements ApplicationContextAware, Serv
 	protected final List<HttpMessageConverter<?>> getMessageConverters() {
 		if (this.messageConverters == null) {
 			this.messageConverters = new ArrayList<>();
+			//钩子方法调用WebMvcConfigure的configureMessageConverters方法
 			configureMessageConverters(this.messageConverters);
 			if (this.messageConverters.isEmpty()) {
+				//默认的九个消息转化器
 				addDefaultHttpMessageConverters(this.messageConverters);
 			}
+			//钩子方法调用WebMvcConfigurer的extendMessageConverters方法
 			extendMessageConverters(this.messageConverters);
 		}
 		return this.messageConverters;
@@ -1042,6 +1048,7 @@ public class WebMvcConfigurationSupport implements ApplicationContextAware, Serv
 			@Qualifier("mvcContentNegotiationManager") ContentNegotiationManager contentNegotiationManager) {
 		ViewResolverRegistry registry =
 				new ViewResolverRegistry(contentNegotiationManager, this.applicationContext);
+		//设置视图解析的配置规则，前缀 和后缀
 		configureViewResolvers(registry);
 
 		if (registry.getViewResolvers().isEmpty() && this.applicationContext != null) {

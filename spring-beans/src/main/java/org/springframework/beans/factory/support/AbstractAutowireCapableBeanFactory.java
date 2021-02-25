@@ -543,6 +543,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		try {
 			// Give BeanPostProcessors a chance to return a proxy instead of the target bean instance.
 			//在实列化前解析,可能返回一个代理对象
+			//若targetSource不为空,就会在实列前对bean进行代理
 			Object bean = resolveBeforeInstantiation(beanName, mbdToUse);
 			if (bean != null) {
 				return bean;
@@ -641,7 +642,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 				logger.trace("Eagerly caching bean '" + beanName +
 						"' to allow for resolving potential circular references");
 			}
-			//添加三级缓存
+			//添加三级缓存：用途1 解决循环依赖 2.对依赖的代理bean进行提前暴露
 			addSingletonFactory(beanName, () -> getEarlyBeanReference(beanName, mbd, bean));
 		}
 
@@ -1236,6 +1237,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		if (mbd.getFactoryMethodName() != null) {
 			//用工厂方法实列化(包括普通工厂和静态工厂)
+			//@Bean注解就采用了工厂方法进行实列化
 			return instantiateUsingFactoryMethod(beanName, mbd, args);
 		}
 
@@ -1464,7 +1466,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 				}
 			}
 		}
-
+        //取出beanDefinition的MutablePropertyValues对属性进行反射赋值
 		PropertyValues pvs = (mbd.hasPropertyValues() ? mbd.getPropertyValues() : null);
 
 		int resolvedAutowireMode = mbd.getResolvedAutowireMode();
@@ -1499,7 +1501,6 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 						if (filteredPds == null) {
 							filteredPds = filterPropertyDescriptorsForDependencyCheck(bw, mbd.allowCaching);
 						}
-
 						//老版本用这个完成依赖注入过程，@Autowired的支持
 						pvsToUse = ibp.postProcessPropertyValues(pvs, filteredPds, bw.getWrappedInstance(), beanName);
 						if (pvsToUse == null) {
@@ -1519,7 +1520,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		if (pvs != null) {
 			//这个方法很鸡肋了，建议不看，是老版本用<property name="username" value="Jack"/>
-			//标签做依赖注入的代码实现，复杂且无用
+			//标签做依赖注入的代码实现，复杂且无用  自己王BeanDefinition设置MutablePropertyValues时，就会用到
 			applyPropertyValues(beanName, mbd, bw, pvs);
 		}
 	}
@@ -1866,13 +1867,14 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		Object wrappedBean = bean;
 		if (mbd == null || !mbd.isSynthetic()) {
-			//对其他Aware接口的调用
+			//对其他Aware接口的调用,@PostConstruct的调用
 			wrappedBean = applyBeanPostProcessorsBeforeInitialization(wrappedBean, beanName);
 		}
 
 		try {
 			/**
 			 * 执行初始化方法
+			 * 1。@PostConstruct
 			 * 1.执行InitializingBean的afterProperties方法
 			 * 2.执行<bean />标签的init-method方法
 			 */

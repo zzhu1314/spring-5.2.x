@@ -68,3 +68,42 @@ RequestContextHolder.setRequestAttributes(requestAttributes, this.threadContextI
 **doDispatch()是解决请求调用的核心方法**
 
 通过url在RequestMappingHandlerMapping在实列化时建立好的映射射关系，获取到handlerMethod方法，根据handlerMehotd，找到所有的interceptor，判断是否拦截，封装成HandlerExecutionChain，返回
+
+
+
+
+
+RequestResponseBodyMethodProcessor：解析json格式的入参和返回参数，里面有一个messageConverters进行request参数的读取和response参数的写入，
+
+messageConverters，可以实现MebMvcConfigurer自定义实现
+
+## 核心
+
+1.RequestMappingHandlerMapping:负责对@Controller下@RequestMapping方法的解析
+
+@EnableMvc注解开启了对RequestMappingHandlerMapping类的实列化，在RequestMappingHandlerMapping创建工程中，spring利用钩子函数（模板设计模式）将WebMvcConfigurer配置的属性赋值到RequestMappingHandlerMapping中，RequestMappingHandlerMapping在初始化时会建立请求路径与方法的映射关系。
+
+SpringMvc执行流程
+
+1.DispatcherServlet解析request，获取到请求路径
+
+2.根据请求路径找到RequestMappingHandlerMapping实列化时urlLookup中的RequestMappingInfo，在根据RequstMappingInfo找到HandlerMethod
+
+3.返回一个HandlerExcuteChain，HandlerExcuteChain包含了拦截器链和HandlerMethod
+
+4.根据HandlerMethod找到对应的HandlerAdapter-->RequestMappingHandlerAdapter，HandlerAdapter包含了参数解析器。**RequestResponseBodyMethodProcessor**对@RequestBody注解标记的参数进行解析
+
+5.调用拦截器的前置方法
+
+6.调用HandlerAdapter的handleInternal方法，执行HanlerMethod的具体逻辑，执行前会根据参数解析器，解析参数(策略模式)，
+
+调用方法后会根据返回结果判断是否需要返回视图
+
+7.**RequestResponseBodyMethodProcessor**解析returnType，判断是否有@ReponseBody，若有mavContainer.setRequestHandled(true);
+
+表明不会创建视图。
+
+83.执行拦截器的中置方法，中置方法会传入ModelAandView对象表明 可以修改mv对象
+
+8.若创建了视图返回的是ModelAndView对象，还需要用视图解析器解析视图，解析成View对象，若是jsp，tomcat进行视图渲染
+

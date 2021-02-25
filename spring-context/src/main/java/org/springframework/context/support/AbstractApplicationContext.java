@@ -562,6 +562,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				 * 提前对BeanFactoryPostProcessor的实列化
 				 * 1.定义在bean实列化之前，BeanDefinitionRegistryPostProcessor完成对BeanDefinition的修改和注册，删除
 				 * 2.BeanFactoryPostProcessor对BeanFactory属性的修改
+				 * ConfigurationClassPostProcessor
 				 */
 				invokeBeanFactoryPostProcessors(beanFactory);
 
@@ -569,7 +570,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				/**
 				 * 1.提前对beanPostProcessor的实列化（getBean）
 				 * 2.对系统自定义的BeanPostProcessor 实列化
-				 * ConfigurationClassPostProcessor,AutowiredAnnotationBeanPostProcessor,CommonAnnotationBeanPostProcessor
+				 * AutowiredAnnotationBeanPostProcessor,CommonAnnotationBeanPostProcessor
 				 */
 				registerBeanPostProcessors(beanFactory);
 
@@ -887,8 +888,9 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			/**
 			 * 将事件监听器加入到事件派发器applicationListeners中
 			 * 模板设计模式
-			 * ApplicationEventMulticaster()--->Subject（主题）
+			 * ApplicationEventMulticaster()--->Subject（主题）被观察者
 			 * ApplicationListener----->观察者
+			 * 被观察者要包含观察者，被观察者要通知观察者是否发生变化
 			 */
 			getApplicationEventMulticaster().addApplicationListener(listener);
 		}
@@ -898,6 +900,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		String[] listenerBeanNames = getBeanNamesForType(ApplicationListener.class, true, false);
 		for (String listenerBeanName : listenerBeanNames) {
 			//获取注册到容器的ApplicationListener并加如到派发器的applicationListenerBeans中
+			//获取事件派发器，往事件派发的ListenerRetriever中的listenerBeans添加监听器的beanName
 			getApplicationEventMulticaster().addApplicationListenerBean(listenerBeanName);
 		}
 

@@ -15,11 +15,13 @@
 	<!--    <bean id ="student1" class="com.xml.ioc.bean.Student"/>-->
 	<!--	<bean class="com.xml.ioc.bean.Student" parent="student1" depends-on="student1"/>-->
 	<!--自定义标签 -->
-<!--	<context:component-scan base-package="com.xml.ioc" use-default-filters="true"/>-->
+<!--
+ 	<context:component-scan base-package="com.xml.ioc" use-default-filters="true"/>
+-->
 	<!--aop也是自定义标签解析 将AnnotationAwareAspectJAutoProxyCreator注册成BeanDefinition-->
 	<aop:aspectj-autoproxy/>
 
-	<context:property-placeholder location="classpath:application.properties"/>
+<!--	<context:property-placeholder location="classpath:application.properties"/>-->
 
 	<!--	<bean id="student" class="com.xml.ioc.bean.Student"/>-->
 	<!--
@@ -38,7 +40,7 @@
 	<bean name="destoryDemo" class="com.xml.ioc.dosposablebean.DisposableBeanDemo" destroy-method="xmlDestoryBean"/>-->
 	<!--bean的属性注入-->
 	<bean name="propertiesBean" class="com.xml.ioc.properties.PropertiesBeanDemo">
-		<property name="name" value="${zz.name}"/>
+	 <property name="name" value="${zz.name}"/>
 		<property name="age" value="${zz.age}"/>
 	</bean>
 </beans>

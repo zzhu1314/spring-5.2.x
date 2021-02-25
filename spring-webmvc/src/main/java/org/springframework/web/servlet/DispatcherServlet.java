@@ -1022,7 +1022,7 @@ public class DispatcherServlet extends FrameworkServlet {
 				multipartRequestParsed = (processedRequest != request);
 
 				// Determine handler for the current request.
-				//
+				//获取HandlerExecutionChain,HandlerExecutionChain包含了HanlderMethod和拦截器链
 				mappedHandler = getHandler(processedRequest);
 				if (mappedHandler == null) {
 					noHandlerFound(processedRequest, response);
@@ -1030,6 +1030,11 @@ public class DispatcherServlet extends FrameworkServlet {
 				}
 
 				// Determine handler adapter for the current request.
+				/**
+				 * 根据handler @Controller情况下 是handlerMethod
+				 * 获取HandlerAdapter
+				 * RequestMappingHandlerAdapter
+				 */
 				HandlerAdapter ha = getHandlerAdapter(mappedHandler.getHandler());
 
 				// Process last-modified header, if supported by the handler.
@@ -1041,12 +1046,19 @@ public class DispatcherServlet extends FrameworkServlet {
 						return;
 					}
 				}
-
+				//执行前置拦截器
 				if (!mappedHandler.applyPreHandle(processedRequest, response)) {
 					return;
 				}
 
 				// Actually invoke the handler.
+				/**
+				 * handlerMethod的具体执行逻辑
+				 * processedRequest：servlet中的request对象
+				 * response：servlet中的response对象
+				 * mappedHandler.getHandler()：HandlerMethod
+				 * 对返回值处理时，若不需要视图响应 这里就将返回结果返回给了客户端
+				 */
 				mv = ha.handle(processedRequest, response, mappedHandler.getHandler());
 
 				if (asyncManager.isConcurrentHandlingStarted()) {
@@ -1054,6 +1066,7 @@ public class DispatcherServlet extends FrameworkServlet {
 				}
 
 				applyDefaultViewName(processedRequest, mv);
+				//执行后置拦截器
 				mappedHandler.applyPostHandle(processedRequest, response, mv);
 			}
 			catch (Exception ex) {
@@ -1064,6 +1077,9 @@ public class DispatcherServlet extends FrameworkServlet {
 				// making them available for @ExceptionHandler methods and other scenarios.
 				dispatchException = new NestedServletException("Handler dispatch failed", err);
 			}
+			/**
+			 * 执行响应结果
+			 */
 			processDispatchResult(processedRequest, response, mappedHandler, mv, dispatchException);
 		}
 		catch (Exception ex) {
@@ -1111,6 +1127,9 @@ public class DispatcherServlet extends FrameworkServlet {
 
 		boolean errorView = false;
 
+		/**
+		 * 处理异常
+		 */
 		if (exception != null) {
 			if (exception instanceof ModelAndViewDefiningException) {
 				logger.debug("ModelAndViewDefiningException encountered", exception);
@@ -1125,6 +1144,9 @@ public class DispatcherServlet extends FrameworkServlet {
 
 		// Did the handler return a view to render?
 		if (mv != null && !mv.wasCleared()) {
+			/**
+			 * 渲染视图
+			 */
 			render(mv, request, response);
 			if (errorView) {
 				WebUtils.clearErrorRequestAttributes(request);
@@ -1282,6 +1304,12 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * @param handler the handler object to find an adapter for
 	 * @throws ServletException if no HandlerAdapter can be found for the handler. This is a fatal error.
 	 */
+	/**
+	 * handlerAdapters 在
+	 * @param handler
+	 * @return
+	 * @throws ServletException
+	 */
 	protected HandlerAdapter getHandlerAdapter(Object handler) throws ServletException {
 		if (this.handlerAdapters != null) {
 			for (HandlerAdapter adapter : this.handlerAdapters) {
@@ -1427,6 +1455,9 @@ public class DispatcherServlet extends FrameworkServlet {
 	protected View resolveViewName(String viewName, @Nullable Map<String, Object> model,
 			Locale locale, HttpServletRequest request) throws Exception {
 
+		/**
+		 * viewResolvers 在DispactcherServlet的发布的事件中创建的
+		 */
 		if (this.viewResolvers != null) {
 			for (ViewResolver viewResolver : this.viewResolvers) {
 				View view = viewResolver.resolveViewName(viewName, locale);

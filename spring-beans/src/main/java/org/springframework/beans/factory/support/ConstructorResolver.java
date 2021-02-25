@@ -406,6 +406,7 @@ class ConstructorResolver {
 		boolean isStatic;
 
 		//获取factoryBean的名字<factory-bean=""/>
+		//@Bean注解就是采用工厂方法进行实列化的
 		String factoryBeanName = mbd.getFactoryBeanName();
 		if (factoryBeanName != null) {
 			//为普通工厂方法

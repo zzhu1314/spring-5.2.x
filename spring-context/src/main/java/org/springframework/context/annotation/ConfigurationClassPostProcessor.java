@@ -471,6 +471,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 
 		/**
 		 * 为实现了ImportAware接口的类注入父类(被谁导入)的AnnotationMetadata信息
+		 * importingClass是在@ConfigurationClassPostProcessor处理器处理时将metadaData放入集合中的
 		 */
 		@Override
 		public Object postProcessBeforeInitialization(Object bean, String beanName) {

@@ -1,5 +1,6 @@
 package com.xml.ioc;
 
+import com.xml.ioc.bean.Dog;
 import com.xml.ioc.beanmethod.BeanMethodConfiguration;
 import com.xml.ioc.beanmethod.BigCat;
 import com.xml.ioc.beanmethod.Cat;
@@ -12,7 +13,9 @@ import com.xml.ioc.configurationclass.B;
 import org.springframework.beans.PropertyValue;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.core.type.classreading.CachingMetadataReaderFactory;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -22,9 +25,9 @@ import java.util.Set;
  * properties属性值解析出来
  */
 public class ConfigurationApplication {
-	public static void main(String[] args) {
-	AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(ConfigurationClassDemo.class);
-		System.out.println(applicationContext.getBean(A.class));
+	public static void main(String[] args) throws IOException {
+/*	AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(ConfigurationClassDemo.class);
+		System.out.println(applicationContext.getBean(A.class));*/
 		/*AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(BeanMethodConfiguration.class);
 		BigCat bigCat = applicationContext.getBean(BigCat.class);
 		System.out.println("cat:"+bigCat.getCat().hashCode());
@@ -32,6 +35,8 @@ public class ConfigurationApplication {
 		System.out.println("tiger:"+bigCat.getYellowTiger().hashCode());
 		System.out.println(applicationContext.getBean(YellowTiger.class).hashCode());
 */
+		CachingMetadataReaderFactory cachingMetadataReaderFactory = new CachingMetadataReaderFactory();
+		System.out.println(cachingMetadataReaderFactory.getMetadataReader(Dog.class.getName()).getAnnotationMetadata());
 	}
 
 	//@Test

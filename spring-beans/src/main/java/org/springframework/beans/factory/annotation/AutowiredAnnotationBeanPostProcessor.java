@@ -478,6 +478,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 		InjectionMetadata metadata = this.injectionMetadataCache.get(cacheKey);
 		if (InjectionMetadata.needsRefresh(metadata, clazz)) {
 			synchronized (this.injectionMetadataCache) {
+				//ConcurrentHashMap在put的时候是线程安全的，在get时获取到的不一定时最新的数据
 				metadata = this.injectionMetadataCache.get(cacheKey);
 				if (InjectionMetadata.needsRefresh(metadata, clazz)) {
 					if (metadata != null) {
@@ -496,6 +497,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 		if (!AnnotationUtils.isCandidateClass(clazz, this.autowiredAnnotationTypes)) {
 			return InjectionMetadata.EMPTY;
 		}
+
 
 		List<InjectionMetadata.InjectedElement> elements = new ArrayList<>();
 		Class<?> targetClass = clazz;
@@ -668,7 +670,13 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 				value = resolvedCachedArgument(beanName, this.cachedFieldValue);
 			}
 			else {
+				/**
+				 * 被依赖属性的描述
+				 * 包含 是否必须
+				 * 属性Field
+				 */
 				DependencyDescriptor desc = new DependencyDescriptor(field, this.required);
+				//原始对象 目标对象
 				desc.setContainingClass(bean.getClass());
 				Set<String> autowiredBeanNames = new LinkedHashSet<>(1);
 				Assert.state(beanFactory != null, "No BeanFactory available");

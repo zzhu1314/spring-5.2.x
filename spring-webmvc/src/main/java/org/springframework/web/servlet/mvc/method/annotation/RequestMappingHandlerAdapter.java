@@ -132,6 +132,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 	@Nullable
 	private List<HandlerMethodArgumentResolver> customArgumentResolvers;
 
+	//bean初始化的时候设置参数解析器
 	@Nullable
 	private HandlerMethodArgumentResolverComposite argumentResolvers;
 
@@ -558,6 +559,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 		initControllerAdviceCache();
 
 		if (this.argumentResolvers == null) {
+			//获取请求参数解析器
 			List<HandlerMethodArgumentResolver> resolvers = getDefaultArgumentResolvers();
 			this.argumentResolvers = new HandlerMethodArgumentResolverComposite().addResolvers(resolvers);
 		}
@@ -566,6 +568,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 			this.initBinderArgumentResolvers = new HandlerMethodArgumentResolverComposite().addResolvers(resolvers);
 		}
 		if (this.returnValueHandlers == null) {
+			//获取返回参数解析器
 			List<HandlerMethodReturnValueHandler> handlers = getDefaultReturnValueHandlers();
 			this.returnValueHandlers = new HandlerMethodReturnValueHandlerComposite().addHandlers(handlers);
 		}
@@ -641,6 +644,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 		resolvers.add(new MatrixVariableMethodArgumentResolver());
 		resolvers.add(new MatrixVariableMapMethodArgumentResolver());
 		resolvers.add(new ServletModelAttributeMethodProcessor(false));
+		//设置参数解析器的消息转化器 如json转换
 		resolvers.add(new RequestResponseBodyMethodProcessor(getMessageConverters(), this.requestResponseBodyAdvice));
 		resolvers.add(new RequestPartMethodArgumentResolver(getMessageConverters(), this.requestResponseBodyAdvice));
 		resolvers.add(new RequestHeaderMethodArgumentResolver(getBeanFactory()));
@@ -789,6 +793,10 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 		}
 		else {
 			// No synchronization on session demanded at all...
+			/**
+			 * 反射调用方法 返回ModelAndView对象
+			 * 执行handlerMethod
+			 */
 			mav = invokeHandlerMethod(request, response, handlerMethod);
 		}
 
@@ -842,6 +850,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 
 			ServletInvocableHandlerMethod invocableMethod = createInvocableHandlerMethod(handlerMethod);
 			if (this.argumentResolvers != null) {
+				//设置参数解析
 				invocableMethod.setHandlerMethodArgumentResolvers(this.argumentResolvers);
 			}
 			if (this.returnValueHandlers != null) {
@@ -874,7 +883,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 				});
 				invocableMethod = invocableMethod.wrapConcurrentResult(result);
 			}
-
+			//具体方法的参数解析和反射调用
 			invocableMethod.invokeAndHandle(webRequest, mavContainer);
 			if (asyncManager.isConcurrentHandlingStarted()) {
 				return null;
@@ -985,6 +994,9 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 			ModelFactory modelFactory, NativeWebRequest webRequest) throws Exception {
 
 		modelFactory.updateModel(webRequest, mavContainer);
+		/**
+		 * RequestHandled属性判断是否需要创建视图
+		 */
 		if (mavContainer.isRequestHandled()) {
 			return null;
 		}

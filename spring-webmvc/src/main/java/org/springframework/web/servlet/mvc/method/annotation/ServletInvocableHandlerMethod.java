@@ -102,6 +102,7 @@ public class ServletInvocableHandlerMethod extends InvocableHandlerMethod {
 	public void invokeAndHandle(ServletWebRequest webRequest, ModelAndViewContainer mavContainer,
 			Object... providedArgs) throws Exception {
 
+		//返回结果
 		Object returnValue = invokeForRequest(webRequest, mavContainer, providedArgs);
 		setResponseStatus(webRequest);
 
@@ -120,6 +121,12 @@ public class ServletInvocableHandlerMethod extends InvocableHandlerMethod {
 		mavContainer.setRequestHandled(false);
 		Assert.state(this.returnValueHandlers != null, "No return value handlers");
 		try {
+			/**
+			 * 返回结果解析
+			 * 1.判断返回类型上是否有@ResponseBody
+			 * 2.是否需要设置mavContainer.setRequestHandled(true); 不创建视图
+			 * 对返回值处理时，若不需要视图响应 这里就将返回结果返回给了客户端
+			 */
 			this.returnValueHandlers.handleReturnValue(
 					returnValue, getReturnValueType(returnValue), mavContainer, webRequest);
 		}

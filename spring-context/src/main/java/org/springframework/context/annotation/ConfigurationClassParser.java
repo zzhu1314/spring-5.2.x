@@ -228,9 +228,9 @@ class ConfigurationClassParser {
 		if (this.conditionEvaluator.shouldSkip(configClass.getMetadata(), ConfigurationPhase.PARSE_CONFIGURATION)) {
 			return;
 		}
-       //把需要解析的bean放在configurationClasses中
-		ConfigurationClass existingClass = this.configurationClasses.get(configClass);
-		if (existingClass != null) {
+			//把需要解析的bean放在configurationClasses中
+			ConfigurationClass existingClass = this.configurationClasses.get(configClass);
+			if (existingClass != null) {
 			if (configClass.isImported()) {
 				if (existingClass.isImported()) {
 					existingClass.mergeImportedBy(configClass);
@@ -287,7 +287,7 @@ class ConfigurationClassParser {
 				org.springframework.context.annotation.PropertySource.class)) {
 
 			if (this.environment instanceof ConfigurableEnvironment) {
-				//处理@PropertySources注解
+				//处理@PropertySources注解,就是把文件封装成PropertySource，并把PropertySource放入到Environment的MutablePropertySources中
 				processPropertySource(propertySource);
 			}
 			else {
@@ -621,7 +621,7 @@ class ConfigurationClassParser {
 							String[] importClassNames = selector.selectImports(currentSourceClass.getMetadata());
 							//将返回的类封装成SourceClass
 							Collection<SourceClass> importSourceClasses = asSourceClasses(importClassNames, exclusionFilter);
-							//递归处理方法返回的类名
+							//递归处理方法返回的类名，只看是否实现了ImportSelector或者ImportBeanDefinitionRegistrar接口
 							processImports(configClass, currentSourceClass, importSourceClasses, exclusionFilter, false);
 						}
 					}

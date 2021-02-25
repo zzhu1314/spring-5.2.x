@@ -122,6 +122,7 @@ public abstract class AbstractAdvisorAutoProxyCreator extends AbstractAutoProxyC
 	 * can apply to the specified bean.
 	 * @param candidateAdvisors the candidate Advisors
 	 * @param beanClass the target's bean class
+	 *
 	 * @param beanName the target's bean name
 	 * @return the List of applicable Advisors
 	 * @see ProxyCreationContext#getCurrentProxiedBeanName()

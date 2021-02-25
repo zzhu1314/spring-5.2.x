@@ -320,6 +320,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 							throw new BeanCreationException(mbd.getResourceDescription(), beanName,
 									"Circular depends-on relationship between '" + beanName + "' and '" + dep + "'");
 						}
+						//将(dependOn)依赖的bean,放入容器dependentBeanMap集合中
 						registerDependentBean(dep, beanName);
 						try {
 							//注册depend-on的bean
@@ -940,6 +941,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 		}
 		String result = value;
 		//embeddedValueResolvers再对PropertySourcesPlaceholderConfigurer.postProcessBeanFactory()操作时加入到容器中
+		//若容器为加入PropertySourcesPlaceholderConfigurer，会在容器实列化前对embeddedValueResolvers进行初始化
 		for (StringValueResolver resolver : this.embeddedValueResolvers) {
 			//对${}占位符进行解析
 			result = resolver.resolveStringValue(result);
