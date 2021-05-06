@@ -11,6 +11,7 @@ import com.xml.ioc.configurationclass.A;
 import com.xml.ioc.configurationclass.B;
 //import org.junit.Test;
 import org.springframework.beans.PropertyValue;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.core.type.classreading.CachingMetadataReaderFactory;
@@ -23,11 +24,14 @@ import java.util.Set;
 
 /**
  * properties属性值解析出来
+ * ApplicationContext不是bean 不能通过getBean获取
+ * 但可以通过依赖注入和ApplicationContextAware接口实现
  */
 public class ConfigurationApplication {
 	public static void main(String[] args) throws IOException {
-/*	AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(ConfigurationClassDemo.class);
-		System.out.println(applicationContext.getBean(A.class));*/
+	AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(ConfigurationClassDemo.class);
+		System.out.println(applicationContext.getBean(ApplicationContext.class));
+		/*System.out.println(applicationContext.getBean(A.class));*/
 		/*AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(BeanMethodConfiguration.class);
 		BigCat bigCat = applicationContext.getBean(BigCat.class);
 		System.out.println("cat:"+bigCat.getCat().hashCode());

@@ -283,7 +283,11 @@ public class WebMvcConfigurationSupport implements ApplicationContextAware, Serv
        //创建handlerMapping
 		RequestMappingHandlerMapping mapping = createRequestMappingHandlerMapping();
 		mapping.setOrder(0);
-		//设置拦截器，最终是交给容器中的WebmvcConfigurer实现
+		/**
+		 * 设置拦截器，最终是交给容器中的WebmvcConfigurer实现
+		 * 添加到ist<Object> interceptors = new ArrayList<>();结合种
+		 * getInterceptors（）获取自己定义的拦截器
+		 */
 		mapping.setInterceptors(getInterceptors(conversionService, resourceUrlProvider));
 		mapping.setContentNegotiationManager(contentNegotiationManager);
 		mapping.setCorsConfigurations(getCorsConfigurations());
@@ -340,8 +344,15 @@ public class WebMvcConfigurationSupport implements ApplicationContextAware, Serv
 			InterceptorRegistry registry = new InterceptorRegistry();
 			//钩子函数,交给子类去创建Interceptor
 			addInterceptors(registry);
+			//添加默认的拦截器
 			registry.addInterceptor(new ConversionServiceExposingInterceptor(mvcConversionService));
 			registry.addInterceptor(new ResourceUrlProviderExposingInterceptor(mvcResourceUrlProvider));
+			/**
+			 * 给拦截器排序
+			 * 若InterceptorRegistration的includePatterns或者excludePaterns不为空则返回MappedInterceptor
+			 * 否则返回HandlerInterceptor
+			 *
+			 */
 			this.interceptors = registry.getInterceptors();
 		}
 		return this.interceptors.toArray();
@@ -952,13 +963,17 @@ public class WebMvcConfigurationSupport implements ApplicationContextAware, Serv
 	public HandlerExceptionResolver handlerExceptionResolver(
 			@Qualifier("mvcContentNegotiationManager") ContentNegotiationManager contentNegotiationManager) {
 		List<HandlerExceptionResolver> exceptionResolvers = new ArrayList<>();
+		//钩子方法
 		configureHandlerExceptionResolvers(exceptionResolvers);
 		if (exceptionResolvers.isEmpty()) {
+			//添加默认的三种异常解析器
 			addDefaultHandlerExceptionResolvers(exceptionResolvers, contentNegotiationManager);
 		}
+		//钩子函数
 		extendHandlerExceptionResolvers(exceptionResolvers);
 		HandlerExceptionResolverComposite composite = new HandlerExceptionResolverComposite();
 		composite.setOrder(0);
+		//添加组合
 		composite.setExceptionResolvers(exceptionResolvers);
 		return composite;
 	}
@@ -1000,6 +1015,7 @@ public class WebMvcConfigurationSupport implements ApplicationContextAware, Serv
 	protected final void addDefaultHandlerExceptionResolvers(List<HandlerExceptionResolver> exceptionResolvers,
 			ContentNegotiationManager mvcContentNegotiationManager) {
 
+		//创建ExceptionHandlerExceptionResolver
 		ExceptionHandlerExceptionResolver exceptionHandlerResolver = createExceptionHandlerExceptionResolver();
 		exceptionHandlerResolver.setContentNegotiationManager(mvcContentNegotiationManager);
 		exceptionHandlerResolver.setMessageConverters(getMessageConverters());
@@ -1012,13 +1028,19 @@ public class WebMvcConfigurationSupport implements ApplicationContextAware, Serv
 		if (this.applicationContext != null) {
 			exceptionHandlerResolver.setApplicationContext(this.applicationContext);
 		}
+		/**
+		 * 调用afterPropertiesSet方法
+		 * 获取@ControllerAdvice注解的bean，建立方法与异常类型的映射关系
+		 */
 		exceptionHandlerResolver.afterPropertiesSet();
 		exceptionResolvers.add(exceptionHandlerResolver);
 
 		ResponseStatusExceptionResolver responseStatusResolver = new ResponseStatusExceptionResolver();
 		responseStatusResolver.setMessageSource(this.applicationContext);
+		//创建responseStatusResolver  使用@ResponseStatus
 		exceptionResolvers.add(responseStatusResolver);
 
+		//创建DefaultHandlerExceptionResolver
 		exceptionResolvers.add(new DefaultHandlerExceptionResolver());
 	}
 

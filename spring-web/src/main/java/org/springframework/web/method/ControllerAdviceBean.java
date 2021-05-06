@@ -263,10 +263,15 @@ public class ControllerAdviceBean implements Ordered {
 		List<ControllerAdviceBean> adviceBeans = new ArrayList<>();
 		for (String name : BeanFactoryUtils.beanNamesForTypeIncludingAncestors(context, Object.class)) {
 			if (!ScopedProxyUtils.isScopedTarget(name)) {
+				/**
+				 * 获取加了@ControllerAdvice的bean
+				 * 注解信息
+				 */
 				ControllerAdvice controllerAdvice = context.findAnnotationOnBean(name, ControllerAdvice.class);
 				if (controllerAdvice != null) {
 					// Use the @ControllerAdvice annotation found by findAnnotationOnBean()
 					// in order to avoid a subsequent lookup of the same annotation.
+					//封装成ControllerAdviceBean
 					adviceBeans.add(new ControllerAdviceBean(name, context, controllerAdvice));
 				}
 			}

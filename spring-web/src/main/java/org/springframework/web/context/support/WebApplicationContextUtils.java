@@ -187,11 +187,17 @@ public abstract class WebApplicationContextUtils {
 		beanFactory.registerScope(WebApplicationContext.SCOPE_SESSION, new SessionScope());
 		if (sc != null) {
 			ServletContextScope appScope = new ServletContextScope(sc);
+			/**
+			 * 注册自定义scope
+			 */
 			beanFactory.registerScope(WebApplicationContext.SCOPE_APPLICATION, appScope);
 			// Register as ServletContext attribute, for ContextCleanupListener to detect it.
 			sc.setAttribute(ServletContextScope.class.getName(), appScope);
 		}
-
+		/**
+		 * 讲ServletRequest类型对象放入resolvableDependencies
+		 * 依赖注入时直接从这里获取,不从IOC中获取
+		 */
 		beanFactory.registerResolvableDependency(ServletRequest.class, new RequestObjectFactory());
 		beanFactory.registerResolvableDependency(ServletResponse.class, new ResponseObjectFactory());
 		beanFactory.registerResolvableDependency(HttpSession.class, new SessionObjectFactory());

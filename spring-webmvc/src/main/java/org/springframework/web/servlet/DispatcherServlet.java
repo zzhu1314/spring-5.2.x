@@ -1017,16 +1017,8 @@ public class DispatcherServlet extends FrameworkServlet {
 			ModelAndView mv = null;
 			Exception dispatchException = null;
 
-			try {
-				processedRequest = checkMultipart(request);
-				multipartRequestParsed = (processedRequest != request);
 
-				// Determine handler for the current request.
-				//获取HandlerExecutionChain,HandlerExecutionChain包含了HanlderMethod和拦截器链
-				mappedHandler = getHandler(processedRequest);
-				if (mappedHandler == null) {
-					noHandlerFound(processedRequest, response);
-					return;
+
 				}
 
 				// Determine handler adapter for the current request.
@@ -1128,7 +1120,7 @@ public class DispatcherServlet extends FrameworkServlet {
 		boolean errorView = false;
 
 		/**
-		 * 处理异常
+		 * 处理异常，统一异常处理
 		 */
 		if (exception != null) {
 			if (exception instanceof ModelAndViewDefiningException) {
@@ -1137,6 +1129,7 @@ public class DispatcherServlet extends FrameworkServlet {
 			}
 			else {
 				Object handler = (mappedHandler != null ? mappedHandler.getHandler() : null);
+				//异常处理
 				mv = processHandlerException(request, response, handler, exception);
 				errorView = (mv != null);
 			}
@@ -1165,6 +1158,7 @@ public class DispatcherServlet extends FrameworkServlet {
 
 		if (mappedHandler != null) {
 			// Exception (if any) is already handled..
+			//执行后置拦截器
 			mappedHandler.triggerAfterCompletion(request, response, null);
 		}
 	}
@@ -1341,8 +1335,13 @@ public class DispatcherServlet extends FrameworkServlet {
 
 		// Check registered HandlerExceptionResolvers...
 		ModelAndView exMv = null;
+		/**
+		 * 获取异常解析器，DisparcherServlet在创建容器前发布了一个事件，
+		 * 进行了异常解析器的创建
+		 */
 		if (this.handlerExceptionResolvers != null) {
 			for (HandlerExceptionResolver resolver : this.handlerExceptionResolvers) {
+				//对异常进行解析
 				exMv = resolver.resolveException(request, response, handler, ex);
 				if (exMv != null) {
 					break;

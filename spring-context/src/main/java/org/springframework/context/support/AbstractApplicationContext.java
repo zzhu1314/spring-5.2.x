@@ -551,6 +551,11 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
 
 			// Prepare the bean factory for use in this context.
+			/**
+			 * 准备beanFactory的需要对象
+			 * 如ApplicationContext，当使用@Autowire注入时，使用的是这里面的对象注入的  而不是SingletonObjects容器中的对象
+			 * 注册Environment对象到IOC容器中
+			 */
 			prepareBeanFactory(beanFactory);
 
 			try {
@@ -719,6 +724,10 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 		// BeanFactory interface not registered as resolvable type in a plain factory.
 		// MessageSource registered (and found for autowiring) as a bean.
+		/**
+		 * 将 beanFactory对象放入resolvableDependencies  依赖注入时使用
+		 * 将 ApplicationContext对象放入resolvableDependencies  依赖注入时使用
+		 */
 		beanFactory.registerResolvableDependency(BeanFactory.class, beanFactory);
 		beanFactory.registerResolvableDependency(ResourceLoader.class, this);
 		beanFactory.registerResolvableDependency(ApplicationEventPublisher.class, this);
@@ -736,6 +745,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 		// Register default environment beans.
 		if (!beanFactory.containsLocalBean(ENVIRONMENT_BEAN_NAME)) {
+			//注册Environment对象
 			beanFactory.registerSingleton(ENVIRONMENT_BEAN_NAME, getEnvironment());
 		}
 		if (!beanFactory.containsLocalBean(SYSTEM_PROPERTIES_BEAN_NAME)) {

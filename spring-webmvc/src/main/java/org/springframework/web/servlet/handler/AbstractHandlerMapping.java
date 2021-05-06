@@ -80,6 +80,9 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 
 	private PathMatcher pathMatcher = new AntPathMatcher();
 
+	/**
+	 * @Bean创建Mapping的时候对interceptors进行填充
+	 */
 	private final List<Object> interceptors = new ArrayList<>();
 
 	private final List<HandlerInterceptor> adaptedInterceptors = new ArrayList<>();
@@ -280,11 +283,17 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 	 * Initializes the interceptors.
 	 * @see #extendInterceptors(java.util.List)
 	 * @see #initInterceptors()
+	 * 由实现了ApplicationContextAware接口
+	 * bean的实列化时调用
 	 */
 	@Override
 	protected void initApplicationContext() throws BeansException {
 		extendInterceptors(this.interceptors);
+		/**
+		 * 获取MappedInterceptor类型的bean
+		 */
 		detectMappedInterceptors(this.adaptedInterceptors);
+		//初始化adaptedInterceptors
 		initInterceptors();
 	}
 
@@ -471,6 +480,9 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 		String lookupPath = this.urlPathHelper.getLookupPathForRequest(request, LOOKUP_PATH);
 		//策略模式，获取合适的拦截器
 		for (HandlerInterceptor interceptor : this.adaptedInterceptors) {
+			/**
+			 * MappedInterceptor会对路径进行判断
+			 */
 			if (interceptor instanceof MappedInterceptor) {
 				MappedInterceptor mappedInterceptor = (MappedInterceptor) interceptor;
 				if (mappedInterceptor.matches(lookupPath, this.pathMatcher)) {

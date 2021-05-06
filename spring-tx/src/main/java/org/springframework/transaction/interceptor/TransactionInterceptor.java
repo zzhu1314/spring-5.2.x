@@ -50,6 +50,12 @@ import org.springframework.transaction.TransactionManager;
  * @see org.springframework.aop.framework.ProxyFactoryBean
  * @see org.springframework.aop.framework.ProxyFactory
  */
+
+/**
+ * 保证同一个事务的前提
+ * 1.使用同一个Connection对象
+ * 2.关闭自动提交
+ */
 @SuppressWarnings("serial")
 public class TransactionInterceptor extends TransactionAspectSupport implements MethodInterceptor, Serializable {
 

@@ -58,10 +58,12 @@ public class ExceptionHandlerMethodResolver {
 	/**
 	 * A constructor that finds {@link ExceptionHandler} methods in the given type.
 	 * @param handlerType the type to introspect
+	 * MethodIntrospector.selectMethods(handlerType, EXCEPTION_HANDLER_METHODS)：获取加了ExceptionHandler注解的方法
 	 */
 	public ExceptionHandlerMethodResolver(Class<?> handlerType) {
 		for (Method method : MethodIntrospector.selectMethods(handlerType, EXCEPTION_HANDLER_METHODS)) {
 			for (Class<? extends Throwable> exceptionType : detectExceptionMappings(method)) {
+				//建立异常类型与方法的映射关系
 				addExceptionMapping(exceptionType, method);
 			}
 		}
@@ -75,6 +77,7 @@ public class ExceptionHandlerMethodResolver {
 	@SuppressWarnings("unchecked")
 	private List<Class<? extends Throwable>> detectExceptionMappings(Method method) {
 		List<Class<? extends Throwable>> result = new ArrayList<>();
+		//获取@ExceptionHandler的value值
 		detectAnnotationExceptionMappings(method, result);
 		if (result.isEmpty()) {
 			for (Class<?> paramType : method.getParameterTypes()) {

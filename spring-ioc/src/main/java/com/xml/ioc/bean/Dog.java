@@ -3,9 +3,9 @@ package com.xml.ioc.bean;
 
 import com.xml.ioc.scan.Cat;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-
 public class Dog {
 
 	private String name="小黄";

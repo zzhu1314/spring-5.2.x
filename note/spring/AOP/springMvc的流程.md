@@ -107,3 +107,30 @@ SpringMvc执行流程
 
 8.若创建了视图返回的是ModelAndView对象，还需要用视图解析器解析视图，解析成View对象，若是jsp，tomcat进行视图渲染
 
+
+
+
+
+
+
+
+
+
+
+### springMC建立请求的3种方式
+
+1.加上@Controller注解的类，RequestMappingHandlerMapping建立映射,RequestMappingHandler调用方法
+
+2.实现了AbstractController抽象类的类，这种controller的beanName必须以'/'开头，可以返回视图,BeanNameUrlHandlerMapping建立映射关系,SimpleUrlHandlerAdapter调用方法
+
+3.实现了HttpRequestHandler接口的类，SimpleUrlHandlerMapping要程序员自己实列化，并建立url与类的映射关系,HttpRequestHandlerAdapter执行调用逻辑
+
+
+
+
+
+### SpringMvc的异常处理
+
+```
+@Controller类下的@ExceptionHandler的优先级大于@ControllerAdvice下的@ExceptionHandler
+```

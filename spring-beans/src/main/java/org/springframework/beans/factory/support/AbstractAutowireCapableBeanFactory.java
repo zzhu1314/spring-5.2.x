@@ -423,16 +423,16 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	/**
 	 * 主要是
 	 * 1.ApplicationContextAwareProcessor  其他aware接口的调用
-	 *
+	 * <p>
 	 * 2.InitDestroyAnnotationBeanPostProcessor  执行@PostConstruct方法
-	 *
+	 * <p>
 	 * 3.ImportAwareBeanPostProcessor  针对用@Import导入的类
 	 *
 	 * @param existingBean the existing bean instance
-	 * @param beanName the name of the bean, to be passed to it if necessary
-	 * (only passed to {@link BeanPostProcessor BeanPostProcessors};
-	 * can follow the {@link #ORIGINAL_INSTANCE_SUFFIX} convention in order to
-	 * enforce the given instance to be returned, i.e. no proxies etc)
+	 * @param beanName     the name of the bean, to be passed to it if necessary
+	 *                     (only passed to {@link BeanPostProcessor BeanPostProcessors};
+	 *                     can follow the {@link #ORIGINAL_INSTANCE_SUFFIX} convention in order to
+	 *                     enforce the given instance to be returned, i.e. no proxies etc)
 	 * @return
 	 * @throws BeansException
 	 */
@@ -453,11 +453,12 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 	/**
 	 * 1.ApplicationListenerDetector   执行监听器 将监听器加入缓存
+	 *
 	 * @param existingBean the existing bean instance
-	 * @param beanName the name of the bean, to be passed to it if necessary
-	 * (only passed to {@link BeanPostProcessor BeanPostProcessors};
-	 * can follow the {@link #ORIGINAL_INSTANCE_SUFFIX} convention in order to
-	 * enforce the given instance to be returned, i.e. no proxies etc)
+	 * @param beanName     the name of the bean, to be passed to it if necessary
+	 *                     (only passed to {@link BeanPostProcessor BeanPostProcessors};
+	 *                     can follow the {@link #ORIGINAL_INSTANCE_SUFFIX} convention in order to
+	 *                     enforce the given instance to be returned, i.e. no proxies etc)
 	 * @return
 	 * @throws BeansException
 	 */
@@ -599,7 +600,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			 * bean的实列化  有4中实列化方式 核心
 			 * 1. 使用普通工厂方法进行实列化
 			 * 2.使用静态工厂方法进行实列化
-			 * 3.对加了@Autowired注解的有参构造函数进行实列化（若是多个构造函数@Autowired的required属性必须为false）  对加了@Autowired注解的无参构造函数进行实列化
+			 * 3.对加了@Autowired注解的有参构造函数进行实列化（若是多个构造函数@Autowired的required属性必须为false,对构造函数参数按降序排序，选择参数最多的一个进行实列化）  对加了@Autowired注解的无参构造函数进行实列化
 			 * 4.对普通有参构造函数进行实例化（若是多个构造函数则会使用无参构造函数,若只有一个有参构造函数则就用它进行实列化） 对普通无参构造函数进行实例化
 			 * -----构造函数有参和无参进行实列化时也有差别
 			 * 实例化后堆内存已经存在对象，但对象没有属性
@@ -666,8 +667,18 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		 *	情况:自己依赖自己
 		 */
 		if (earlySingletonExposure) {
+			/**
+			 * 只能从二级缓存出取出bean,allowEarlyReference未false
+			 *
+			 */
 			Object earlySingletonReference = getSingleton(beanName, false);
 			if (earlySingletonReference != null) {
+				/**
+				 * 	在代理的情况下exposedObject!=bean
+				 * 	如果bean在循环依赖提前暴露的情况下产生代理对象，这里exposedObject == bean都是原始实列
+				 * 	但是@Async产生的代理对象不会走提前暴露，是在初始化bean时走bean的后置处理器产生的
+				 * 	这就导致在循环依赖的情况下exposedObject!=bean，后面就会报错
+				 */
 				if (exposedObject == bean) {
 					exposedObject = earlySingletonReference;
 				} else if (!this.allowRawInjectionDespiteWrapping && hasDependentBean(beanName)) {
@@ -1223,6 +1234,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 */
 	protected BeanWrapper createBeanInstance(String beanName, RootBeanDefinition mbd, @Nullable Object[] args) {
 		// Make sure bean class is actually resolved at this point.
+
 		Class<?> beanClass = resolveBeanClass(mbd, beanName);
 
 		if (beanClass != null && !Modifier.isPublic(beanClass.getModifiers()) && !mbd.isNonPublicAccessAllowed()) {
@@ -1466,7 +1478,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 				}
 			}
 		}
-        //取出beanDefinition的MutablePropertyValues对属性进行反射赋值
+		//取出beanDefinition的MutablePropertyValues对属性进行反射赋值
 		PropertyValues pvs = (mbd.hasPropertyValues() ? mbd.getPropertyValues() : null);
 
 		int resolvedAutowireMode = mbd.getResolvedAutowireMode();
@@ -1495,7 +1507,15 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			for (BeanPostProcessor bp : getBeanPostProcessors()) {
 				if (bp instanceof InstantiationAwareBeanPostProcessor) {
 					InstantiationAwareBeanPostProcessor ibp = (InstantiationAwareBeanPostProcessor) bp;
-					//依赖注入  @Autowired的支持
+					/**
+					 * 	依赖注入
+					 *    @Autowired的支持
+					 *    @Vaulue的支持
+					 * @Resource的支持
+					 *    pvs；propertyValues   <property></property>标签  手动往BeanDefinition塞propertyValues
+					 * 	 bw.getWrappedInstance()：bean的实列对象
+					 * 	 beanName：bean的name
+					 */
 					PropertyValues pvsToUse = ibp.postProcessProperties(pvs, bw.getWrappedInstance(), beanName);
 					if (pvsToUse == null) {
 						if (filteredPds == null) {
@@ -1589,6 +1609,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 					// Do not allow eager init for type matching in case of a prioritized post-processor.
 					boolean eager = !(bw.getWrappedInstance() instanceof PriorityOrdered);
 					DependencyDescriptor desc = new AutowireByTypeDependencyDescriptor(methodParam, eager);
+					//这里根据依赖描述器进行依赖注入
 					Object autowiredArgument = resolveDependency(desc, beanName, autowiredBeanNames, converter);
 					if (autowiredArgument != null) {
 						pvs.add(propertyName, autowiredArgument);
@@ -1923,7 +1944,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 */
 	protected void invokeInitMethods(String beanName, Object bean, @Nullable RootBeanDefinition mbd)
 			throws Throwable {
-        //执行InitializingBean的afterProperties方法
+		//执行InitializingBean的afterProperties方法
 		boolean isInitializingBean = (bean instanceof InitializingBean);
 		if (isInitializingBean && (mbd == null || !mbd.isExternallyManagedInitMethod("afterPropertiesSet"))) {
 			if (logger.isTraceEnabled()) {

@@ -423,6 +423,7 @@ public abstract class AbstractPlatformTransactionManager implements PlatformTran
 		 * definition 事务属性
 		 * transaction 数据源事务对象  DataSourceTransactionObject管理Connection
 		 * newTransaction  是否为一个新事务
+		 * newSynchronization 判断TransactionSynchronizationManager有没有被初始化  synchronizations.get!=null
 		 */
 		DefaultTransactionStatus status = newTransactionStatus(
 				definition, transaction, true, newSynchronization, debugEnabled, suspendedResources);
@@ -437,6 +438,7 @@ public abstract class AbstractPlatformTransactionManager implements PlatformTran
 		/**
 		 * 开启事务后
 		 * 	在ThradLocal中设置事务的一系列属性，改变事务的状态
+		 * 	调用TransactionSynchronizationManager的init方法,使synchronizations初始化
 		 */
 		prepareSynchronization(status, definition);
 		return status;
@@ -645,7 +647,7 @@ public abstract class AbstractPlatformTransactionManager implements PlatformTran
 	protected final SuspendedResourcesHolder suspend(@Nullable Object transaction) throws TransactionException {
 		//能获取到synchronizations，前面创建新事务的时候会进行init
 		if (TransactionSynchronizationManager.isSynchronizationActive()) {
-			//获取到旧事务的synchronizations，并从ThreadLocal中移除
+			//获取到旧事务的synchronizations，就是TransactionSynchronization，并执行其suspend方法，并从ThreadLocal中移除
 			List<TransactionSynchronization> suspendedSynchronizations = doSuspendSynchronization();
 			try {
 				Object suspendedResources = null;
