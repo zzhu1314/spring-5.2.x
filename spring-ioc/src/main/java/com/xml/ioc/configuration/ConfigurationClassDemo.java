@@ -13,7 +13,7 @@ import org.springframework.context.annotation.*;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
-@Configuration(proxyBeanMethods = false)
+@Configuration(proxyBeanMethods = false,value = "a")
 @Import({ImportBeanDefinitionRegistryDemo.class,DeferredImportSelectorDemo.class})
 @ComponentScan("com.xml.ioc.configurationclass")
 @PropertySource(value = "classpath:application.properties")
