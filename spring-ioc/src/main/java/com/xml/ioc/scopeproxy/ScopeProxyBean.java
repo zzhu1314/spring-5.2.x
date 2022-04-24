@@ -13,4 +13,10 @@ import org.springframework.stereotype.Component;
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE,proxyMode = ScopedProxyMode.TARGET_CLASS)
 public class ScopeProxyBean {
+	public ScopeProxyBean(){
+		System.out.println("shilihua。。。。");
+	}
+	public void test(){
+		System.out.println(111);
+	}
 }

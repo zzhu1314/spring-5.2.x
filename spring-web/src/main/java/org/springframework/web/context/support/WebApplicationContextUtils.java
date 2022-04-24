@@ -195,7 +195,7 @@ public abstract class WebApplicationContextUtils {
 			sc.setAttribute(ServletContextScope.class.getName(), appScope);
 		}
 		/**
-		 * 讲ServletRequest类型对象放入resolvableDependencies
+		 * 将ServletRequest类型对象放入resolvableDependencies
 		 * 依赖注入时直接从这里获取,不从IOC中获取
 		 */
 		beanFactory.registerResolvableDependency(ServletRequest.class, new RequestObjectFactory());

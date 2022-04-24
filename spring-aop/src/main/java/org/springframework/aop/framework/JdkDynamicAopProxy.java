@@ -79,7 +79,7 @@ final class JdkDynamicAopProxy implements AopProxy, InvocationHandler, Serializa
 	/** We use a static Log to avoid serialization issues. */
 	private static final Log logger = LogFactory.getLog(JdkDynamicAopProxy.class);
 
-	/** Config used to configure this proxy. */
+	/** Config used to configure this proxy. *///advised=proxyFactory
 	private final AdvisedSupport advised;
 
 	/**
@@ -118,7 +118,7 @@ final class JdkDynamicAopProxy implements AopProxy, InvocationHandler, Serializa
 		if (logger.isTraceEnabled()) {
 			logger.trace("Creating JDK dynamic proxy: " + this.advised.getTargetSource());
 		}
-		//JDK动态代理根据接口创建的方法，这里获取目标对象的接口，Aop的动态代理实际上是实现了adviced接口目标类接口等多个接口
+		//JDK动态代理根据接口创建的方法，这里获取目标对象的接口，Aop的动态代理实际上是实现了adviced接口目标类接口等多个接口 advised=proxyFactory
 		Class<?>[] proxiedInterfaces = AopProxyUtils.completeProxiedInterfaces(this.advised, true);
 		findDefinedEqualsAndHashCodeMethods(proxiedInterfaces);
 		//Jdk动态代理

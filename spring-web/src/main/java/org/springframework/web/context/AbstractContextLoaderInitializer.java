@@ -61,7 +61,7 @@ public abstract class AbstractContextLoaderInitializer implements WebApplication
 		//创建spring容器的上下文(root)
 		WebApplicationContext rootAppContext = createRootApplicationContext();
 		if (rootAppContext != null) {
-			//创建servlet的listener,tomcat启动时会调用listener的contextInitialized方法，惊醒spring容器的初始化
+			//创建servlet的listener,tomcat启动时会调用listener的contextInitialized方法，进行spring容器的初始化
 			ContextLoaderListener listener = new ContextLoaderListener(rootAppContext);
 			//空方法
 			listener.setContextInitializers(getRootApplicationContextInitializers());

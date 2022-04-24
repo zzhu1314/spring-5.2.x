@@ -91,14 +91,17 @@ abstract class ConfigurationClassUtils {
 		}
 
 		AnnotationMetadata metadata;
-		//是AnnotatedBeanDefinition的实现即是通过包扫面创建的bean--ScannedGenericBeanDefinition
+		//是AnnotatedBeanDefinition的实现即是通过包扫面创建的beanDefinition--ScannedGenericBeanDefinition
+		//通过容器的register注入的的配置类的beanDefinition为AnnotatedGenericBeanDefinition
+		//通过@Bean注入的BeanDefinition为ConfigurationClassBeanDefinition
+		//都是AnnotatedBeanDefinition的子类  大体上都可以认为这几种类型的BeanDefinition都是配置类
 		if (beanDef instanceof AnnotatedBeanDefinition &&
 				className.equals(((AnnotatedBeanDefinition) beanDef).getMetadata().getClassName())) {
 			// Can reuse the pre-parsed metadata from the given BeanDefinition...
-			//获取beanDefinition的元数据信息，包含各种注解
+			//获取beanDefinition的元数据信息，包含各种注解信息类名等数据
 			metadata = ((AnnotatedBeanDefinition) beanDef).getMetadata();
 		}
-		//是AbstractBeanDefinition的实现，一般是自定义创建的BeanDefinition或者beanbiaoqian创建的BeanDefinition
+		//是AbstractBeanDefinition的实现，一般是自定义创建的BeanDefinition或者bean标签创建的BeanDefinition
 		//一般是RootBeanDefinition和GenericBeanDefinition
 		else if (beanDef instanceof AbstractBeanDefinition && ((AbstractBeanDefinition) beanDef).hasBeanClass()) {
 			// Check already loaded Class if present...

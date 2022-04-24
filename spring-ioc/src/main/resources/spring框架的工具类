@@ -17,10 +17,14 @@ spring最大的特点就是把一个对象聚合到另一个对象
 策略模式
 1.将所有算法抽象成一个具体类,每一个类都实现一个相同的接口
 2.该接口定义一个support和一个invoke方法，support提供判断逻辑，判断是否选用这个算法，invoke提供具体的执行逻辑
-3.将所有的算法放入一个聚合中
+3.将所有的算法放入一个集合中
 
 
 //获取bean上的注解信息
 ControllerAdvice controllerAdvice  context.findAnnotationOnBean(name, ControllerAdvice.class);
 //获取类中特定的方法
 MethodIntrospector.selectMethods(handlerType, EXCEPTION_HANDLER_METHODS)
+
+
+AnnotationMethodMatcher:直接创建这个MethodMatcher自己会根据构造函数的Annotation进行拦截校验
+AnnotationMatchingPointcut

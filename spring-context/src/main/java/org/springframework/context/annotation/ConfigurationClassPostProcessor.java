@@ -268,13 +268,14 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 
 		for (String beanName : candidateNames) {
 			BeanDefinition beanDef = registry.getBeanDefinition(beanName);
-			//根据属性判断当前bean是否被处理过
+			//根据属性判断当前bean是否被处理过(属性是在AbstractBeanDefinition的父类AttributeAccessorSupport中维护的map中存储)
+			//如果这个BeanDefinition被解析过了 它的属性会被设置成full或者lite不会为空
 			if (beanDef.getAttribute(ConfigurationClassUtils.CONFIGURATION_CLASS_ATTRIBUTE) != null) {
 				if (logger.isDebugEnabled()) {
 					logger.debug("Bean definition has already been processed as a configuration class: " + beanDef);
 				}
 			}
-			//判断当前的beanDefinition是否为ConfigurationClassPostProcessor处理的类
+			//判断当前的beanDefinition是否为ConfigurationClassPostProcessor处理的类(是否为注解类@Configuration或者@Component等等)
 			else if (ConfigurationClassUtils.checkConfigurationClassCandidate(beanDef, this.metadataReaderFactory)) {
 				//将要处理的BeanDefinition封装成BeanDefinitionHolder
 				configCandidates.add(new BeanDefinitionHolder(beanDef, beanName));
@@ -316,7 +317,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 		//创建ConfigurationClassParser解析
 		ConfigurationClassParser parser = new ConfigurationClassParser(
 				this.metadataReaderFactory, this.problemReporter, this.environment,
-				this.resourceLoader, this.componentScanBeanNameGenerator, registry);
+				this.resourceLoader, this.componentScanBeanNameGenerator, registry);//registry-->DefaultListableBeanFactory
 
 		Set<BeanDefinitionHolder> candidates = new LinkedHashSet<>(configCandidates);
 		//已经解析过的BeanDefinition

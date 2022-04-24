@@ -1507,7 +1507,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 				/**
 				 * request依赖注入时在这里会返回一个代理对象
 				 * autowiringValue就是一个被代理对象
-				 * 在使用request调用时实则上是去RequesyContextHolder的线程获取request对象进行方法的反射调用
+				 * 在使用request调用时实则上是去RequestContextHolder的线程获取request对象进行方法的反射调用
 				 */
 				autowiringValue = AutowireUtils.resolveAutowiringValue(autowiringValue, requiredType);
 				if (requiredType.isInstance(autowiringValue)) {

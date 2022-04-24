@@ -1,15 +1,23 @@
-RootBeanDefinition
+当bean的abstract设置的true时，可以不指定class属性
+RootBeanDefinition(只能当父BeanDefinition,当bean的abstract设置的true时，可以不指定class属性，即只能让子BeanDefnition来实列化)
+当rootBeanDefinition指定parentName时报错
 所有BeanDefinition在实列化前都会都会进行merger父子合并封装成RootBeanDefinition
 RootBeanDefinition bd = getMergedLocalBeanDefinition(beanName);
 
-GenericBeanDefinition
+ChildBeanDefinition
+这个只能当子BeanDefinition,必须要指定parentName即指定父BeanDefinition
+
+
+GenericBeanDefinition(通用BeanDefinition,即可以当子也可以当父)
 在xml解析bean标签时会将bean封装成 new GenericBeanDefinition() -->若自定义BeanDefinition使用这种即可
 
+
+//以下三个都是AnnotatedBeanDefinition的实现类
 ScannedGenericBeanDefinition
  在使用ComponentScan进行包扫描时会将扫描到的类封装成 new ScannedGenericBeanDefinition(metadataReader)-->metadataReader
 
 AnnotatedGenericBeanDefinition
-由@Import和内部类导入的类会封装成 new AnnotatedGenericBeanDefinition(annotationMetadata)
+由@Import和内部类导入的类会封装成 new AnnotatedGenericBeanDefinition(annotationMetadata) 通过application.register(X.Class)也会被封装成
 
 ConfigurationClassBeanDefinition
 有@Bean注解解析的方法返回值会被封装成 new ConfigurationClassBeanDefinition(configurationClass,methodMetadata)-->这个是一个私有的内部类

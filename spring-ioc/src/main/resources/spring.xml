@@ -20,7 +20,8 @@
 
 	<!--aop也是自定义标签解析 将AnnotationAwareAspectJAutoProxyCreator注册成BeanDefinition-->
 	<aop:aspectj-autoproxy/>
-
+    <bean id="p" abstract="true"></bean>
+	<bean id="s" class="com.xml.ioc.configurationclass.A" parent="p"></bean>
 <!--	<context:property-placeholder location="classpath:application.properties"/>-->
 
 	<!--	<bean id="student" class="com.xml.ioc.bean.Student"/>-->

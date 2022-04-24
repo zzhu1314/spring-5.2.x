@@ -879,12 +879,12 @@ public class DispatcherServlet extends FrameworkServlet {
 				catch (ClassNotFoundException ex) {
 					throw new BeanInitializationException(
 							"Could not find DispatcherServlet's default strategy class [" + className +
-							"] for interface [" + key + "]", ex);
+									"] for interface [" + key + "]", ex);
 				}
 				catch (LinkageError err) {
 					throw new BeanInitializationException(
 							"Unresolvable class definition for DispatcherServlet's default strategy class [" +
-							className + "] for interface [" + key + "]", err);
+									className + "] for interface [" + key + "]", err);
 				}
 			}
 			return strategies;
@@ -1017,8 +1017,16 @@ public class DispatcherServlet extends FrameworkServlet {
 			ModelAndView mv = null;
 			Exception dispatchException = null;
 
+			try {
+				processedRequest = checkMultipart(request);
+				multipartRequestParsed = (processedRequest != request);
 
-
+				// Determine handler for the current request.
+				//获取HandlerExecutionChain,HandlerExecutionChain包含了HanlderMethod和拦截器链
+				mappedHandler = getHandler(processedRequest);
+				if (mappedHandler == null) {
+					noHandlerFound(processedRequest, response);
+					return;
 				}
 
 				// Determine handler adapter for the current request.
@@ -1114,13 +1122,13 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * either a ModelAndView or an Exception to be resolved to a ModelAndView.
 	 */
 	private void processDispatchResult(HttpServletRequest request, HttpServletResponse response,
-			@Nullable HandlerExecutionChain mappedHandler, @Nullable ModelAndView mv,
-			@Nullable Exception exception) throws Exception {
+									   @Nullable HandlerExecutionChain mappedHandler, @Nullable ModelAndView mv,
+									   @Nullable Exception exception) throws Exception {
 
 		boolean errorView = false;
 
 		/**
-		 * 处理异常，统一异常处理
+		 * 处理异常
 		 */
 		if (exception != null) {
 			if (exception instanceof ModelAndViewDefiningException) {
@@ -1129,7 +1137,6 @@ public class DispatcherServlet extends FrameworkServlet {
 			}
 			else {
 				Object handler = (mappedHandler != null ? mappedHandler.getHandler() : null);
-				//异常处理
 				mv = processHandlerException(request, response, handler, exception);
 				errorView = (mv != null);
 			}
@@ -1158,7 +1165,6 @@ public class DispatcherServlet extends FrameworkServlet {
 
 		if (mappedHandler != null) {
 			// Exception (if any) is already handled..
-			//执行后置拦截器
 			mappedHandler.triggerAfterCompletion(request, response, null);
 		}
 	}
@@ -1262,8 +1268,8 @@ public class DispatcherServlet extends FrameworkServlet {
 		if (this.handlerMappings != null) {
 			for (HandlerMapping mapping : this.handlerMappings) {
 				/**
-				  *从所有的HanlerMappings中寻找一个合适的HandlerMapping
-				  * RequestMappingHandlerMapping用于处理@Controller和@RequestMapping注解将方法封装成HandlerMethod
+				 *从所有的HanlerMappings中寻找一个合适的HandlerMapping
+				 * RequestMappingHandlerMapping用于处理@Controller和@RequestMapping注解将方法封装成HandlerMethod
 				 */
 				HandlerExecutionChain handler = mapping.getHandler(request);
 				if (handler != null) {
@@ -1328,20 +1334,15 @@ public class DispatcherServlet extends FrameworkServlet {
 	 */
 	@Nullable
 	protected ModelAndView processHandlerException(HttpServletRequest request, HttpServletResponse response,
-			@Nullable Object handler, Exception ex) throws Exception {
+												   @Nullable Object handler, Exception ex) throws Exception {
 
 		// Success and error responses may use different content types
 		request.removeAttribute(HandlerMapping.PRODUCIBLE_MEDIA_TYPES_ATTRIBUTE);
 
 		// Check registered HandlerExceptionResolvers...
 		ModelAndView exMv = null;
-		/**
-		 * 获取异常解析器，DisparcherServlet在创建容器前发布了一个事件，
-		 * 进行了异常解析器的创建
-		 */
 		if (this.handlerExceptionResolvers != null) {
 			for (HandlerExceptionResolver resolver : this.handlerExceptionResolvers) {
-				//对异常进行解析
 				exMv = resolver.resolveException(request, response, handler, ex);
 				if (exMv != null) {
 					break;
@@ -1452,7 +1453,7 @@ public class DispatcherServlet extends FrameworkServlet {
 	 */
 	@Nullable
 	protected View resolveViewName(String viewName, @Nullable Map<String, Object> model,
-			Locale locale, HttpServletRequest request) throws Exception {
+								   Locale locale, HttpServletRequest request) throws Exception {
 
 		/**
 		 * viewResolvers 在DispactcherServlet的发布的事件中创建的
@@ -1469,7 +1470,7 @@ public class DispatcherServlet extends FrameworkServlet {
 	}
 
 	private void triggerAfterCompletion(HttpServletRequest request, HttpServletResponse response,
-			@Nullable HandlerExecutionChain mappedHandler, Exception ex) throws Exception {
+										@Nullable HandlerExecutionChain mappedHandler, Exception ex) throws Exception {
 
 		if (mappedHandler != null) {
 			mappedHandler.triggerAfterCompletion(request, response, ex);
